@@ -1,48 +1,53 @@
-// src/api/users.ts
 import { apiClient } from './client';
 
 export type UserRow = {
   id: number;
   name: string;
   email: string;
-  rol: string;
+  rol:
+    | 'SUB_ACADEMICA'
+    | 'SUB_ADMINISTRATIVA'
+    | 'PREFECTO'
+    | 'RRHH'
+    | 'DIRECTOR'
+    | 'JEFE_CARRERA'
+    | 'ROOT';
 };
 
 export type CreateUserPayload = {
   name: string;
   email: string;
   password: string;
-  rol: string;
+  rol: UserRow['rol'];
 };
 
-  // Obtener usuarios
-  export async function getUsers(): Promise<UserRow[]> {
-    const res = await apiClient.get('/api/v1/users');
-    const data = res.data;
+export type UpdateUserPayload = {
+  name?: string;
+  email?: string;
+  rol?: UserRow['rol'];
+  // 👇 si luego quieres permitir cambiar password desde aquí:
+  // password?: string;
+};
 
-    // Ajusta el mapeo si tu backend usa otros nombres
-    return (Array.isArray(data) ? data : []).map((u: any) => ({
-      id: u.id ?? u.sub ?? u.id_user ?? u.id_usuario,
-      name: u.name ?? u.nombre ?? '',
-      email: u.email ?? '',
-      rol: String(u.rol ?? u.role ?? '').toUpperCase().trim(),
-    }));
-  }
+export async function getUsers(): Promise<UserRow[]> {
+  const res = await apiClient.get('/api/v1/users');
+  return res.data;
+}
 
-  // Obtener usuarios
-  export async function createUser(payload: CreateUserPayload): Promise<UserRow> {
-    const res = await apiClient.post('/api/v1/users', payload);
-    const u = res.data;
+export async function createUser(payload: CreateUserPayload): Promise<UserRow> {
+  const res = await apiClient.post('/api/v1/users', payload);
+  return res.data;
+}
 
-    return {
-      id: u.id ?? u.sub ?? u.id_user ?? u.id_usuario,
-      name: u.name ?? u.nombre ?? payload.name,
-      email: u.email ?? payload.email,
-      rol: String(u.rol ?? u.role ?? payload.rol).toUpperCase().trim(),
-    };
-  }
+// ✅ NUEVO: actualizar usuario
+export async function updateUser(
+  id: number,
+  payload: UpdateUserPayload,
+): Promise<UserRow> {
+  const res = await apiClient.patch(`/api/v1/users/${id}`, payload);
+  return res.data;
+}
 
-  // Eliminar usuario
-  export async function deleteUser(id: number): Promise<void> {
-    await apiClient.delete(`/api/v1/users/${id}`);
-  }
+export async function deleteUser(id: number): Promise<void> {
+  await apiClient.delete(`/api/v1/users/${id}`);
+}

@@ -12,6 +12,8 @@ import { RoleRoute } from './routes/RoleRoute';
 import { AppLayout } from './layouts/AppLayout';
 import { HomePage } from './pages/HomePage';
 import { DocentesPage } from './pages/DocentesPage';
+import { EdificiosPage } from './pages/EdificiosPage';
+import { CarrerasPage } from './pages/CarrerasPage';
 
 export function App() {
   return (
@@ -40,6 +42,7 @@ export function App() {
                   'PREFECTO',
                   'RRHH',
                   'DIRECTOR',
+                  'JEFE_CARRERA',
                   'ROOT',
                 ]}
               />
@@ -63,8 +66,8 @@ export function App() {
             <Route path="/pase-lista" element={<PaseListaPage />} />
           </Route>
 
-          {/* Horarios, Solo RRHH, DIRECTOR y ROOT */}
-          <Route element={<RoleRoute allowed={['RRHH', 'DIRECTOR', 'ROOT']} />}>
+          {/* Horarios, Solo RRHH, DIRECTOR, JEFE DE CARRERA y ROOT */}
+          <Route element={<RoleRoute allowed={['RRHH', 'DIRECTOR', 'JEFE_CARRERA', 'ROOT']} />}>
             <Route path="/horarios" element={<AsignacionHorariosPage />} />
           </Route>
 
@@ -73,12 +76,21 @@ export function App() {
             <Route path="/admin" element={<AdminUsersPage />} />
           </Route>
 
-          {/* CRUD de Docentes, Solo RRHH, DIRECTOR y ROOT */}
-          <Route element={<RoleRoute allowed={['RRHH', 'DIRECTOR', 'ROOT']} />}>
+          {/* CRUD de Docentes, Solo RRHH, DIRECTOR, JEFE DE CARRERA y ROOT */}
+          <Route element={<RoleRoute allowed={['RRHH', 'DIRECTOR', 'JEFE_CARRERA', 'ROOT']} />}>
             <Route path="/docentes" element={<DocentesPage />} />
           </Route>
 
+          {/* CRUD de Edificios y Salones, Solo RRHH, DIRECTOR, JEFE DE CARRERA y ROOT */}
+          <Route element={<RoleRoute allowed={['RRHH', 'DIRECTOR', 'JEFE_CARRERA', 'ROOT']} />}>
+            <Route path="/edificios" element={<EdificiosPage />} />
+          </Route>
+
+          <Route element={<RoleRoute allowed={['RRHH', 'DIRECTOR', 'JEFE_CARRERA', 'ROOT']} />}>
+            <Route path="/carreras" element={<CarrerasPage />} />
+          </Route>
         </Route>
+
       </Route>
 
       {/* Ruta comodín: cualquier ruta no existente redirige al login */}

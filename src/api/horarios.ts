@@ -1,65 +1,47 @@
-// src/api/horarios.ts
 import { apiClient } from './client';
 
-export interface Horario {
+export type Horario = {
   id: number;
-  docente: {
-    id: number;
-    nombre: string;
-    carrera: string;
-  };
   dia_semana: string;
   hora_clase: string;
-  aula?: string;
-  edificio?: string;
-}
+  edificio?: string | null;
+  aula?: string | null;
+  id_docente: number;
+
+  docente?: {
+    id_docente: number;
+    nombre: string;
+    carrera: string;
+    activo: boolean;
+    tipo: 'BASE' | 'HORAS';
+  };
+};
 
 export type CreateHorarioPayload = {
   id_docente: number;
   dia_semana: string;
   hora_clase: string;
-  aula?: string;
   edificio?: string;
+  aula?: string;
 };
 
-// Mapeo backend -> frontend
-function mapHorario(h: any): Horario {
-  const docente = h.docente; // lo que manda el backend
+export type UpdateHorarioPayload = Partial<CreateHorarioPayload>;
 
-  return {
-    id: h.id_horario,
-    docente: docente
-      ? {
-          id: docente.id_docente,
-          nombre: docente.nombre,
-          carrera: docente.carrera,
-        }
-      : {
-          id: 0,
-          nombre: 'Sin profesor',
-          carrera: '',
-        },
-    dia_semana: h.dia_semana,
-    hora_clase: h.hora_clase,
-    aula: h.aula,
-    edificio: h.edificio,
-  };
+export async function getHorarios(): Promise<Horario[]> {
+  const res = await apiClient.get('/api/v1/horarios');
+  return res.data;
 }
 
-  // Obtener Horarios 
-  export async function getHorarios(): Promise<Horario[]> {
-    const res = await apiClient.get('/api/v1/horarios');
-    const data = res.data;
-    return data.map(mapHorario);
-  }
+export async function createHorario(payload: CreateHorarioPayload): Promise<Horario> {
+  const res = await apiClient.post('/api/v1/horarios', payload);
+  return res.data;
+}
 
-  // Crear Horarios
-  export async function createHorario(payload: CreateHorarioPayload): Promise<Horario> {
-    const res = await apiClient.post('/api/v1/horarios', payload);
-    return mapHorario(res.data);
-  }
+export async function updateHorario(id: number, payload: UpdateHorarioPayload): Promise<Horario> {
+  const res = await apiClient.patch(`/api/v1/horarios/${id}`, payload);
+  return res.data;
+}
 
-  // Eliminar Horarios
-  export async function deleteHorario(id: number): Promise<void> {
-    await apiClient.delete(`/api/v1/horarios/${id}`);
-  }
+export async function deleteHorario(id: number): Promise<void> {
+  await apiClient.delete(`/api/v1/horarios/${id}`);
+}

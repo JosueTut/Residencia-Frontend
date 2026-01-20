@@ -2,8 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   getAsistenciasPorFecha,
   updateAsistencia,
-  type AsistenciaRow,
+  type AsistenciaItem,
 } from '../api/asistencias';
+import { getEdificios } from '../api/edificios';
 
 const ESTADOS = [
   'PRESENTE',
@@ -12,58 +13,499 @@ const ESTADOS = [
   'INCAPACIDAD',
   'COMISION',
   'SUSPENDIDO',
-];
+] as const;
+
+// ✅ Tipos locales
+type SalonCatalogo = { nombre?: string | null };
+type EdificioCatalogo = { nombre?: string | null; salones?: SalonCatalogo[] | null };
+
+// ✅ Horas permitidas: 07:00 a 21:00
+const HORAS_CLASE = Array.from({ length: 21 - 7 + 1 }, (_, i) => {
+  const h = i + 7;
+  return `${String(h).padStart(2, '0')}:00`;
+});
+
+// ✅ Date helpers (local YYYY-MM-DD)
+const pad2 = (n: number) => String(n).padStart(2, '0');
+const toLocalYMD = (d: Date) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+
+// ===============================
+// Icons (SVG inline)
+// ===============================
+const Icon = ({
+  name,
+}: {
+  name:
+    | 'cap'
+    | 'filter'
+    | 'calendar'
+    | 'building'
+    | 'clock'
+    | 'user'
+    | 'book'
+    | 'pin'
+    | 'save'
+    | 'reload'
+    | 'note';
+}) => {
+  const common = {
+    width: 18,
+    height: 18,
+    viewBox: '0 0 24 24',
+    fill: 'none' as const,
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+  };
+
+  switch (name) {
+    case 'cap':
+      return (
+        <svg {...common}>
+          <path d="M22 10L12 5 2 10l10 5 10-5Z" />
+          <path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5" />
+        </svg>
+      );
+    case 'filter':
+      return (
+        <svg {...common}>
+          <path d="M3 5h18" />
+          <path d="M6 5l6 7v6l4 2v-8l5-7" />
+        </svg>
+      );
+    case 'calendar':
+      return (
+        <svg {...common}>
+          <path d="M8 3v4M16 3v4" />
+          <path d="M3 8h18" />
+          <rect x="3" y="5" width="18" height="16" rx="2" />
+        </svg>
+      );
+    case 'building':
+      return (
+        <svg {...common}>
+          <rect x="4" y="3" width="16" height="18" rx="2" />
+          <path d="M8 7h.01M12 7h.01M16 7h.01M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01" />
+        </svg>
+      );
+    case 'clock':
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 7v6l4 2" />
+        </svg>
+      );
+    case 'user':
+      return (
+        <svg {...common}>
+          <path d="M20 21a8 8 0 0 0-16 0" />
+          <circle cx="12" cy="8" r="4" />
+        </svg>
+      );
+    case 'book':
+      return (
+        <svg {...common}>
+          <path d="M4 19a2 2 0 0 1 2-2h14" />
+          <path d="M6 3h14v18H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" />
+        </svg>
+      );
+    case 'pin':
+      return (
+        <svg {...common}>
+          <path d="M12 22s7-4.5 7-12a7 7 0 0 0-14 0c0 7.5 7 12 7 12Z" />
+          <circle cx="12" cy="10" r="2" />
+        </svg>
+      );
+    case 'save':
+      return (
+        <svg {...common}>
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z" />
+          <path d="M17 21v-8H7v8" />
+          <path d="M7 3v5h8" />
+        </svg>
+      );
+    case 'reload':
+      return (
+        <svg {...common}>
+          <path d="M21 12a9 9 0 1 1-3-6.7" />
+          <path d="M21 3v6h-6" />
+        </svg>
+      );
+    case 'note':
+      return (
+        <svg {...common}>
+          <path d="M21 15a4 4 0 0 1-4 4H7l-4 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z" />
+        </svg>
+      );
+    default:
+      return null;
+  }
+};
+
+// ===============================
+// Styles (match screenshots)
+// ===============================
+const S = {
+  screen: {
+    minHeight: '100vh',
+    background: '#f6f8fc',
+    padding: '18px 0 60px',
+    color: '#0f172a',
+    fontFamily:
+      'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji"',
+  } as const,
+
+  page: {
+    maxWidth: 1240,
+    margin: '0 auto',
+    padding: '0 18px',
+  } as const,
+
+  hero: {
+    borderRadius: 18,
+    padding: 22,
+    color: '#fff',
+    boxShadow: '0 16px 45px rgba(2,6,23,.15)',
+    background: 'linear-gradient(180deg, #1d4ed8 0%, #3b82f6 100%)',
+    position: 'relative' as const,
+    overflow: 'hidden' as const,
+  } as const,
+
+  heroRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 14,
+    flexWrap: 'wrap' as const,
+  } as const,
+
+  heroLeft: { display: 'flex', alignItems: 'center', gap: 14, minWidth: 260 } as const,
+
+  heroIconCircle: {
+    width: 54,
+    height: 54,
+    borderRadius: 999,
+    background: 'rgba(255,255,255,.16)',
+    display: 'grid',
+    placeItems: 'center',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,.18)',
+  } as const,
+
+  h1: { margin: 0, fontSize: 34, letterSpacing: -0.7, lineHeight: 1.05, fontWeight: 550 } as const,
+  sub: { margin: '6px 0 0', opacity: 0.9, fontWeight: 550 } as const,
+
+  heroChip: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 10,
+    padding: '12px 14px',
+    borderRadius: 12,
+    background: 'rgba(255,255,255,.18)',
+    border: '1px solid rgba(255,255,255,.22)',
+    fontWeight: 550,
+    minWidth: 180,
+    justifyContent: 'center',
+  } as const,
+
+  card: {
+    marginTop: 18,
+    borderRadius: 16,
+    background: '#ffffff',
+    border: '1px solid #dbe7ff',
+    boxShadow: '0 12px 30px rgba(2,6,23,.08)',
+    overflow: 'hidden' as const,
+  } as const,
+
+  cardHead: {
+    padding: '14px 16px',
+    background: '#eef6ff',
+    borderBottom: '1px solid #dbe7ff',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    fontWeight: 550,
+    color: '#0b3fa5',
+  } as const,
+
+  cardBody: { padding: 16 } as const,
+
+  filtersGrid: {
+    display: 'grid',
+    gap: 14,
+    gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+    alignItems: 'end',
+  } as const,
+
+  fieldLabelRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    fontWeight: 550,
+    color: '#0b3fa5',
+    marginBottom: 10,
+  } as const,
+
+  iconBadge: (bg: string) =>
+    ({
+      width: 30,
+      height: 30,
+      borderRadius: 8,
+      background: bg,
+      display: 'grid',
+      placeItems: 'center',
+      color: '#fff',
+      flex: '0 0 auto',
+    } as const),
+
+  control: {
+    width: '100%',
+    padding: '12px 14px',
+    borderRadius: 10,
+    border: '1px solid #dbe3f1',
+    outline: 'none',
+    fontWeight: 550,
+    background: '#fff',
+  } as const,
+
+  rowActions: {
+    display: 'flex',
+    gap: 10,
+    flexWrap: 'wrap' as const,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  } as const,
+
+  btnSoft: (disabled?: boolean) =>
+    ({
+      padding: '12px 14px',
+      borderRadius: 10,
+      border: '1px solid #dbe3f1',
+      background: '#fff',
+      color: '#0b3fa5',
+      fontWeight: 550,
+      cursor: disabled ? 'not-allowed' : 'pointer',
+      opacity: disabled ? 0.65 : 1,
+      whiteSpace: 'nowrap' as const,
+    } as const),
+
+  btnPrimary: (disabled?: boolean) =>
+    ({
+      padding: '12px 14px',
+      borderRadius: 10,
+      border: '1px solid rgba(2,6,23,.10)',
+      background: 'linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%)',
+      color: '#fff',
+      fontWeight: 550,
+      cursor: disabled ? 'not-allowed' : 'pointer',
+      opacity: disabled ? 0.65 : 1,
+      boxShadow: '0 14px 30px rgba(37,99,235,.25)',
+      whiteSpace: 'nowrap' as const,
+    } as const),
+
+  listWrap: { marginTop: 16, display: 'grid', gap: 14 } as const,
+
+  itemCard: {
+    borderRadius: 16,
+    background: '#fff',
+    border: '1px solid #dbe3f1',
+    boxShadow: '0 12px 30px rgba(2,6,23,.08)',
+    overflow: 'hidden' as const,
+    display: 'grid',
+    gridTemplateColumns: '1fr 360px',
+  } as const,
+
+  leftStripe: {
+    position: 'absolute' as const,
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 6,
+    background: 'linear-gradient(180deg, #1d4ed8 0%, #3b82f6 100%)',
+  } as const,
+
+  itemLeft: {
+    position: 'relative' as const,
+    padding: 16,
+    paddingLeft: 18,
+  } as const,
+
+  topRow: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 } as const,
+
+  iconSquare: {
+    width: 42,
+    height: 42,
+    borderRadius: 10,
+    background: '#1d4ed8',
+    color: '#fff',
+    display: 'grid',
+    placeItems: 'center',
+    boxShadow: '0 10px 20px rgba(29,78,216,.25)',
+    flex: '0 0 auto',
+  } as const,
+
+  mainTitle: { fontSize: 18, fontWeight: 550, margin: 0 } as const,
+
+  infoGrid: {
+    display: 'grid',
+    gap: 10,
+    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+  } as const,
+
+  pillRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    padding: '10px 12px',
+    borderRadius: 10,
+    background: '#f8fbff',
+    border: '1px solid #eef2ff',
+    color: '#0f172a',
+    fontWeight: 550,
+    minWidth: 0,
+  } as const,
+
+  muted: { opacity: 0.75, fontWeight: 550, fontSize: 12 } as const,
+  itemRight: {
+    padding: 16,
+    borderLeft: '1px solid #eef2ff',
+    display: 'grid',
+    gap: 10,
+    alignContent: 'start',
+    background: '#ffffff',
+  } as const,
+
+  alert: (type: 'error' | 'ok') =>
+    ({
+      marginTop: 12,
+      padding: '12px 14px',
+      borderRadius: 14,
+      border: type === 'error' ? '1px solid rgba(239,68,68,.30)' : '1px solid rgba(34,197,94,.30)',
+      background: type === 'error' ? 'rgba(239,68,68,.08)' : 'rgba(34,197,94,.08)',
+      color: type === 'error' ? '#991b1b' : '#166534',
+      fontWeight: 550,
+    } as const),
+};
 
 export const RegistroAsistenciasPage = () => {
-  const [fecha, setFecha] = useState(() => new Date().toISOString().slice(0, 10));
-  const [rows, setRows] = useState<AsistenciaRow[]>([]);
+  const hoyYmd = toLocalYMD(new Date());
+  const clampToHoy = (v: string) => (v && v > hoyYmd ? hoyYmd : v);
+
+  const [fecha, setFecha] = useState(() => hoyYmd);
+  const [data, setData] = useState<AsistenciaItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
   const [mensaje, setMensaje] = useState('');
+  const [error, setError] = useState('');
 
-  // drafts
-  const [estadoDraft, setEstadoDraft] = useState<Record<number, string>>({});
-  const [notaDraft, setNotaDraft] = useState<Record<number, string>>({});
+  // ✅ filtros
+  const [filtroHora, setFiltroHora] = useState<string>('Todas');
+  const [filtroEdificio, setFiltroEdificio] = useState<string>('Todos');
+  const [filtroSalon, setFiltroSalon] = useState<string>('Todos');
 
-  // editing flags
-  const [dirty, setDirty] = useState<Record<number, boolean>>({});
-  const [savingId, setSavingId] = useState<number | null>(null);
-  const [savingAll, setSavingAll] = useState(false);
+  // ✅ catálogo edificios/salones
+  const [edificiosCrud, setEdificiosCrud] = useState<EdificioCatalogo[]>([]);
 
-  // filtros
-  const [fEstado, setFEstado] = useState('Todos');
-  const [fEdificio, setFEdificio] = useState('Todos');
-  const [fHora, setFHora] = useState('Todos');
+  // cargar catálogo una vez
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await getEdificios();
+        setEdificiosCrud(Array.isArray(res) ? (res as EdificioCatalogo[]) : []);
+      } catch (e) {
+        console.error(e);
+        setEdificiosCrud([]);
+      }
+    })();
+  }, []);
+
+  // responsive helper (sin CSS externo)
+  const [w, setW] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1200);
+  useEffect(() => {
+    const onR = () => setW(window.innerWidth);
+    window.addEventListener('resize', onR);
+    return () => window.removeEventListener('resize', onR);
+  }, []);
+  const isSm = w < 720;
+  const isMd = w >= 720 && w < 980;
+
+  const filtersGridStyle = isSm
+    ? { ...S.filtersGrid, gridTemplateColumns: '1fr' }
+    : isMd
+      ? { ...S.filtersGrid, gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }
+      : S.filtersGrid;
+
+  const itemCardStyle = isSm ? { ...S.itemCard, gridTemplateColumns: '1fr' } : S.itemCard;
+  const rightStyle = isSm
+    ? { ...S.itemRight, borderLeft: 'none', borderTop: '1px solid #eef2ff' }
+    : S.itemRight;
+  const infoGridStyle = isSm ? { ...S.infoGrid, gridTemplateColumns: '1fr' } : S.infoGrid;
+
+  const edificiosOpciones = useMemo<string[]>(() => {
+    const nombres = edificiosCrud
+      .map((e: EdificioCatalogo) => (e.nombre ?? '').trim())
+      .filter((n): n is string => Boolean(n));
+
+    return ['Todos', ...Array.from(new Set(nombres)).sort((a, b) => a.localeCompare(b))];
+  }, [edificiosCrud]);
+
+  const salonesOpciones = useMemo<string[]>(() => {
+    if (filtroEdificio === 'Todos') return ['Todos'];
+
+    const ed = edificiosCrud.find(
+      (e: EdificioCatalogo) => (e.nombre ?? '').trim() === filtroEdificio,
+    );
+
+    const salones = (ed?.salones ?? [])
+      .map((s: SalonCatalogo) => (s.nombre ?? '').trim())
+      .filter((n): n is string => Boolean(n));
+
+    return ['Todos', ...Array.from(new Set(salones)).sort((a, b) => a.localeCompare(b))];
+  }, [edificiosCrud, filtroEdificio]);
+
+  const horasOpciones = useMemo<string[]>(() => ['Todas', ...HORAS_CLASE], []);
+
+  const dataFiltrada = useMemo(() => {
+    let lista = data;
+
+    if (filtroHora !== 'Todas') lista = lista.filter(a => a.horaClase === filtroHora);
+    if (filtroEdificio !== 'Todos') lista = lista.filter(a => (a.edificio ?? '') === filtroEdificio);
+    if (filtroSalon !== 'Todos') lista = lista.filter(a => String(a.salon ?? '') === String(filtroSalon));
+
+    const texto = (v?: string) => (v ?? '').toUpperCase();
+    const num = (v?: string) => {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : Number.MAX_SAFE_INTEGER;
+    };
+    const horaInicio = (hora: string) => {
+      const m = hora.match(/(\d{1,2})(?::\d{2})?/);
+      return m ? Number(m[1]) : Number.MAX_SAFE_INTEGER;
+    };
+
+    return [...lista].sort((a, b) => {
+      const cmpEd = texto(a.edificio).localeCompare(texto(b.edificio));
+      if (cmpEd !== 0) return cmpEd;
+
+      const cmpSalon = num(String(a.salon ?? '')) - num(String(b.salon ?? ''));
+      if (cmpSalon !== 0) return cmpSalon;
+
+      return horaInicio(a.horaClase) - horaInicio(b.horaClase);
+    });
+  }, [data, filtroHora, filtroEdificio, filtroSalon]);
+
+  const total = dataFiltrada.length;
 
   const cargar = async () => {
     try {
       setLoading(true);
-      setError('');
       setMensaje('');
-
-      const data = await getAsistenciasPorFecha(fecha);
-      const list = Array.isArray(data) ? data : [];
-
-      setRows(list);
-
-      // precargar drafts + limpiar dirty
-      const nextEstado: Record<number, string> = {};
-      const nextNota: Record<number, string> = {};
-      const nextDirty: Record<number, boolean> = {};
-
-      list.forEach(a => {
-        nextEstado[a.idAsistencia] = a.estado ?? 'PRESENTE';
-        nextNota[a.idAsistencia] = a.nota ?? '';
-        nextDirty[a.idAsistencia] = false;
-      });
-
-      setEstadoDraft(nextEstado);
-      setNotaDraft(nextNota);
-      setDirty(nextDirty);
+      setError('');
+      const res = await getAsistenciasPorFecha(fecha);
+      setData(Array.isArray(res) ? res : []);
     } catch (e) {
       console.error(e);
-      setError('Error al cargar asistencias.');
-      setRows([]);
+      setError('No se pudieron cargar las asistencias.');
+      setData([]);
     } finally {
       setLoading(false);
     }
@@ -74,265 +516,301 @@ export const RegistroAsistenciasPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fecha]);
 
-  const edificiosDisponibles = useMemo(() => {
-    return Array.from(
-      new Set(rows.map(r => r.edificio).filter(Boolean)),
-    ).sort();
-  }, [rows]);
-
-  const horasDisponibles = useMemo(() => {
-    return Array.from(new Set(rows.map(r => r.horaClase).filter(Boolean))).sort();
-  }, [rows]);
-
-  const rowsFiltradas = useMemo(() => {
-    return rows.filter(r => {
-      if (fEstado !== 'Todos' && (estadoDraft[r.idAsistencia] ?? r.estado) !== fEstado) return false;
-      if (fEdificio !== 'Todos' && r.edificio !== fEdificio) return false;
-      if (fHora !== 'Todos' && r.horaClase !== fHora) return false;
-      return true;
-    });
-  }, [rows, fEstado, fEdificio, fHora, estadoDraft]);
-
-  const totalDirty = useMemo(() => {
-    return Object.values(dirty).filter(Boolean).length;
-  }, [dirty]);
-
-  const markDirty = (id: number) => {
-    setDirty(prev => ({ ...prev, [id]: true }));
+  const handleChange = (id: number, field: 'estado' | 'nota', value: string) => {
+    setData(prev => prev.map(a => (a.idAsistencia === id ? { ...a, [field]: value } : a)));
   };
 
-  const onSaveRow = async (idAsistencia: number) => {
+  const guardarCambios = async () => {
     try {
-      setSavingId(idAsistencia);
-      setError('');
+      setSaving(true);
       setMensaje('');
-
-      const payload = {
-        estado: estadoDraft[idAsistencia],
-        notaAdicional: notaDraft[idAsistencia],
-      };
-
-      await updateAsistencia(idAsistencia, payload);
-
-      // aplicar en tabla
-      setRows(prev =>
-        prev.map(r =>
-          r.idAsistencia === idAsistencia
-            ? { ...r, estado: payload.estado, nota: payload.notaAdicional ?? '' }
-            : r,
-        ),
-      );
-
-      setDirty(prev => ({ ...prev, [idAsistencia]: false }));
-      setMensaje('Asistencia actualizada ✅');
-    } catch (e) {
-      console.error(e);
-      setError('Error al actualizar la asistencia.');
-    } finally {
-      setSavingId(null);
-    }
-  };
-
-  const onSaveAll = async () => {
-    const ids = Object.keys(dirty)
-      .map(Number)
-      .filter(id => dirty[id]);
-
-    if (ids.length === 0) {
-      setMensaje('No hay cambios por guardar.');
-      return;
-    }
-
-    try {
-      setSavingAll(true);
       setError('');
-      setMensaje('');
 
-      // Guardar uno por uno (simple y seguro)
-      for (const id of ids) {
-        const payload = {
-          estado: estadoDraft[id],
-          notaAdicional: notaDraft[id],
-        };
-        await updateAsistencia(id, payload);
-
-        // actualizar rows localmente
-        setRows(prev =>
-          prev.map(r =>
-            r.idAsistencia === id
-              ? { ...r, estado: payload.estado, nota: payload.notaAdicional ?? '' }
-              : r,
-          ),
-        );
-
-        setDirty(prev => ({ ...prev, [id]: false }));
+      for (const a of data) {
+        await updateAsistencia(a.idAsistencia, {
+          estado: a.estado,
+          notaAdicional: a.nota,
+        });
       }
 
-      setMensaje(`Cambios guardados (${ids.length}) ✅`);
+      setMensaje('✅ Cambios guardados correctamente');
     } catch (e) {
       console.error(e);
-      setError('Error al guardar todos los cambios.');
+      setError('Error al guardar cambios');
     } finally {
-      setSavingAll(false);
+      setSaving(false);
     }
+  };
+
+  const limpiarFiltros = () => {
+    setFiltroHora('Todas');
+    setFiltroEdificio('Todos');
+    setFiltroSalon('Todos');
   };
 
   return (
-    <div style={{ color: 'white' }}>
-      <h1>Asistencias</h1>
-      <p>Aquí se muestran las asistencias tomadas y puedes corregirlas.</p>
+    <div style={S.screen}>
+      <div style={S.page}>
+        {/* HERO */}
+        <header style={S.hero}>
+          <div style={S.heroRow}>
+            <div style={S.heroLeft}>
+              <div style={S.heroIconCircle}>
+                <Icon name="cap" />
+              </div>
+              <div>
+                <h1 style={S.h1}>Modificar Asistencias</h1>
+                <div style={S.sub}>Modifica estado y nota por registro</div>
+              </div>
+            </div>
 
-      {/* Controles */}
-      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-        <label>
-          Fecha:{' '}
-          <input
-            type="date"
-            value={fecha}
-            onChange={e => setFecha(e.target.value)}
-          />
-        </label>
+            <div style={S.heroChip}>
+              <Icon name="book" />
+              <span style={{ fontWeight: 550 }}>{total}</span>
+              <span style={{ opacity: 0.9, fontWeight: 550 }}>registros</span>
+            </div>
+          </div>
+        </header>
 
-        <button onClick={cargar} disabled={loading}>
-          {loading ? 'Cargando...' : 'Recargar'}
-        </button>
+        {/* CONTROLES */}
+        <section style={S.card}>
+          <div style={S.cardHead}>
+            <Icon name="filter" />
+            Filtros de búsqueda
+          </div>
 
-        <button onClick={onSaveAll} disabled={savingAll || totalDirty === 0}>
-          {savingAll ? 'Guardando...' : `Guardar todo (${totalDirty})`}
-        </button>
+          <div style={S.cardBody}>
+            <div style={filtersGridStyle}>
+              {/* Fecha */}
+              <div>
+                <div style={S.fieldLabelRow}>
+                  <span style={S.iconBadge('#7c3aed')}>
+                    <Icon name="calendar" />
+                  </span>
+                  Fecha
+                </div>
+                <input
+                  type="date"
+                  value={fecha}
+                  max={hoyYmd}
+                  onChange={e => {
+                    const raw = e.target.value;
+                    const v = clampToHoy(raw);
+                    setFecha(v);
+                    if (v !== raw) setError('No puedes seleccionar fechas futuras.');
+                    else if (error === 'No puedes seleccionar fechas futuras.') setError('');
+                  }}
+                  style={S.control}
+                />
+              </div>
 
-        <span style={{ opacity: 0.85 }}>
-          Total: {rows.length} | Mostrando: {rowsFiltradas.length}
-        </span>
-      </div>
+              {/* Hora */}
+              <div>
+                <div style={S.fieldLabelRow}>
+                  <span style={S.iconBadge('#ea580c')}>
+                    <Icon name="clock" />
+                  </span>
+                  Hora de clase
+                </div>
+                <select value={filtroHora} onChange={e => setFiltroHora(e.target.value)} style={S.control}>
+                  {horasOpciones.map(h => (
+                    <option key={h} value={h}>
+                      {h}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-      {/* Filtros */}
-      <div style={{ marginTop: 12, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-        <label>
-          Estado:{' '}
-          <select value={fEstado} onChange={e => setFEstado(e.target.value)}>
-            <option value="Todos">Todos</option>
-            {ESTADOS.map(es => (
-              <option key={es} value={es}>{es}</option>
-            ))}
-          </select>
-        </label>
+              {/* Edificio */}
+              <div>
+                <div style={S.fieldLabelRow}>
+                  <span style={S.iconBadge('#059669')}>
+                    <Icon name="building" />
+                  </span>
+                  Edificio
+                </div>
+                <select
+                  value={filtroEdificio}
+                  onChange={e => {
+                    const v = e.target.value;
+                    setFiltroEdificio(v);
+                    setFiltroSalon('Todos');
+                  }}
+                  style={S.control}
+                >
+                  {edificiosOpciones.map(ed => (
+                    <option key={ed} value={ed}>
+                      {ed}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-        <label>
-          Edificio:{' '}
-          <select value={fEdificio} onChange={e => setFEdificio(e.target.value)}>
-            <option value="Todos">Todos</option>
-            {edificiosDisponibles.map(ed => (
-              <option key={ed} value={ed}>{ed}</option>
-            ))}
-          </select>
-        </label>
+              {/* Salón + limpiar */}
+              <div>
+                <div style={S.fieldLabelRow}>
+                  <span style={S.iconBadge('#2563eb')}>
+                    <Icon name="pin" />
+                  </span>
+                  Salón
+                </div>
+                <select
+                  value={filtroSalon}
+                  onChange={e => setFiltroSalon(e.target.value)}
+                  disabled={filtroEdificio === 'Todos'}
+                  title={filtroEdificio === 'Todos' ? 'Selecciona edificio primero' : undefined}
+                  style={S.control}
+                >
+                  {salonesOpciones.map(s => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
 
-        <label>
-          Hora:{' '}
-          <select value={fHora} onChange={e => setFHora(e.target.value)}>
-            <option value="Todos">Todos</option>
-            {horasDisponibles.map(h => (
-              <option key={h} value={h}>{h}</option>
-            ))}
-          </select>
-        </label>
-      </div>
+                <div style={{ marginTop: 10 }}>
+                  <button type="button" onClick={limpiarFiltros} style={S.btnSoft(false)}>
+                    Limpiar filtros
+                  </button>
+                </div>
+              </div>
+            </div>
 
-      {error && <p style={{ color: 'tomato' }}>{error}</p>}
-      {mensaje && <p style={{ color: 'lightgreen' }}>{mensaje}</p>}
+            <div style={{ marginTop: 14, ...S.rowActions }}>
+              <button type="button" onClick={cargar} disabled={loading || saving} style={S.btnSoft(loading || saving)}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                  <Icon name="reload" />
+                  {loading ? 'Actualizando…' : 'Actualizar'}
+                </span>
+              </button>
 
-      {loading ? (
-        <p>Cargando...</p>
-      ) : rowsFiltradas.length === 0 ? (
-        <p>No hay asistencias para mostrar con esos filtros.</p>
-      ) : (
-        <div style={{ overflowX: 'auto', marginTop: 12 }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                <th style={{ textAlign: 'left', padding: 8 }}>Profesor</th>
-                <th style={{ textAlign: 'left', padding: 8 }}>Carrera</th>
-                <th style={{ textAlign: 'left', padding: 8 }}>Edificio</th>
-                <th style={{ textAlign: 'left', padding: 8 }}>Salón</th>
-                <th style={{ textAlign: 'left', padding: 8 }}>Hora</th>
-                <th style={{ textAlign: 'left', padding: 8 }}>Estado</th>
-                <th style={{ textAlign: 'left', padding: 8 }}>Nota</th>
-                <th style={{ padding: 8 }}>Acciones</th>
-              </tr>
-            </thead>
+              <button
+                type="button"
+                onClick={guardarCambios}
+                disabled={data.length === 0 || loading || saving}
+                style={S.btnPrimary(data.length === 0 || loading || saving)}
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                  <Icon name="save" />
+                  {saving ? 'Guardando…' : 'Guardar cambios'}
+                </span>
+              </button>
+            </div>
 
-            <tbody>
-              {rowsFiltradas.map(r => {
-                const isDirty = !!dirty[r.idAsistencia];
+            {error && <div style={S.alert('error')}>{error}</div>}
+            {mensaje && <div style={S.alert('ok')}>{mensaje}</div>}
+          </div>
+        </section>
 
-                return (
-                  <tr
-                    key={r.idAsistencia}
-                    style={{
-                      borderTop: '1px solid #333',
-                      opacity: isDirty ? 1 : 0.92,
-                    }}
-                  >
-                    <td style={{ padding: 8 }}>
-                      {r.profesor} {isDirty ? '✳️' : ''}
-                    </td>
-                    <td style={{ padding: 8 }}>{r.carrera}</td>
-                    <td style={{ padding: 8 }}>{r.edificio}</td>
-                    <td style={{ padding: 8 }}>{r.salon}</td>
-                    <td style={{ padding: 8 }}>{r.horaClase}</td>
+        {/* LISTA */}
+        {loading ? (
+          <section style={S.card}>
+            <div style={S.cardBody}>Cargando...</div>
+          </section>
+        ) : total === 0 ? (
+          <section style={S.card}>
+            <div style={S.cardBody}>No hay asistencias con esos filtros.</div>
+          </section>
+        ) : (
+          <div style={S.listWrap}>
+            {dataFiltrada.map(a => {
+              const profesor = a.profesor ?? 'Sin profesor';
+              const edificio = a.edificio ?? '-';
+              const salon = a.salon ?? '-';
+              const hora = a.horaClase ?? '-';
+              const ubicacion = `${edificio}-${salon}`;
 
-                    <td style={{ padding: 8 }}>
+              return (
+                <article key={a.idAsistencia} style={itemCardStyle}>
+                  {/* LEFT */}
+                  <div style={S.itemLeft}>
+                    <div style={S.leftStripe} />
+
+                    <div style={S.topRow}>
+                      <div style={S.iconSquare}>
+                        <Icon name="cap" />
+                      </div>
+                      <div>
+                        <p style={S.mainTitle}>Registro de asistencia</p>
+                        <div style={S.muted}>ID: {a.idAsistencia}</div>
+                      </div>
+                    </div>
+
+                    <div style={infoGridStyle}>
+                      <div style={S.pillRow}>
+                        <Icon name="user" />
+                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {profesor}
+                        </span>
+                      </div>
+
+                      <div style={S.pillRow}>
+                        <span style={{ color: '#059669' }}>
+                          <Icon name="pin" />
+                        </span>
+                        <span style={{ fontWeight: 550 }}>{ubicacion}</span>
+                      </div>
+
+                      <div style={S.pillRow}>
+                        <span style={{ color: '#ea580c' }}>
+                          <Icon name="clock" />
+                        </span>
+                        <span style={{ fontWeight: 550 }}>{hora}</span>
+                      </div>
+                    </div>
+
+                    <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10, color: '#4b5563', fontWeight: 550 }}>
+                      <span style={{ color: '#7c3aed' }}>
+                        <Icon name="book" />
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* RIGHT */}
+                  <div style={rightStyle}>
+                    <div>
+                      <div style={{ ...S.fieldLabelRow, marginBottom: 10 }}>
+                        <span style={S.iconBadge('#2563eb')}>
+                          <Icon name="book" />
+                        </span>
+                        Asignar estado
+                      </div>
+
                       <select
-                        value={estadoDraft[r.idAsistencia] ?? r.estado ?? 'PRESENTE'}
-                        onChange={e => {
-                          setEstadoDraft(prev => ({
-                            ...prev,
-                            [r.idAsistencia]: e.target.value,
-                          }));
-                          markDirty(r.idAsistencia);
-                        }}
+                        value={a.estado}
+                        onChange={e => handleChange(a.idAsistencia, 'estado', e.target.value)}
+                        style={S.control}
                       >
-                        {ESTADOS.map(es => (
-                          <option key={es} value={es}>{es}</option>
+                        {ESTADOS.map(est => (
+                          <option key={est} value={est}>
+                            {est}
+                          </option>
                         ))}
                       </select>
-                    </td>
+                    </div>
 
-                    <td style={{ padding: 8 }}>
+                    <div>
+                      <div style={{ ...S.fieldLabelRow, marginBottom: 10 }}>
+                        <span style={S.iconBadge('#94a3b8')}>
+                          <Icon name="note" />
+                        </span>
+                        Comentario adicional (opcional)
+                      </div>
+
                       <input
-                        value={notaDraft[r.idAsistencia] ?? r.nota ?? ''}
-                        onChange={e => {
-                          setNotaDraft(prev => ({
-                            ...prev,
-                            [r.idAsistencia]: e.target.value,
-                          }));
-                          markDirty(r.idAsistencia);
-                        }}
+                        value={a.nota ?? ''}
+                        onChange={e => handleChange(a.idAsistencia, 'nota', e.target.value)}
                         placeholder="Opcional"
-                        style={{ width: 240 }}
+                        style={S.control}
                       />
-                    </td>
-
-                    <td style={{ padding: 8, textAlign: 'center' }}>
-                      <button
-                        onClick={() => onSaveRow(r.idAsistencia)}
-                        disabled={savingId === r.idAsistencia}
-                      >
-                        {savingId === r.idAsistencia ? 'Guardando...' : 'Guardar'}
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-
-          <p style={{ marginTop: 8, opacity: 0.8 }}>
-            ✳️ = fila con cambios pendientes por guardar
-          </p>
-        </div>
-      )}
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

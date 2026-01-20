@@ -1,11 +1,13 @@
 export const ROUTE_PERMISSIONS: Record<string, string[]> = {
-  '/profile': ['SUB_ACADEMICA', 'SUB_ADMINISTRATIVA', 'PREFECTO', 'RRHH', 'DIRECTOR','ROOT'],
-  '/asistencias': ['SUB_ACADEMICA', 'SUB_ADMINISTRATIVA', 'PREFECTO', 'RRHH', 'DIRECTOR', 'ROOT'],
-  '/reporte': ['SUB_ACADEMICA', 'SUB_ADMINISTRATIVA', 'PREFECTO', 'RRHH', 'DIRECTOR', 'ROOT'],
+  '/profile': ['SUB_ACADEMICA', 'SUB_ADMINISTRATIVA', 'PREFECTO', 'RRHH', 'DIRECTOR', 'JEFE_CARRERA', 'ROOT'],
+  '/asistencias': ['SUB_ACADEMICA', 'SUB_ADMINISTRATIVA', 'PREFECTO', 'RRHH', 'DIRECTOR', 'JEFE_CARRERA', 'ROOT'],
+  '/reporte': ['SUB_ACADEMICA', 'SUB_ADMINISTRATIVA', 'PREFECTO', 'RRHH', 'DIRECTOR', 'JEFE_CARRERA', 'ROOT'],
   '/pase-lista': ['PREFECTO', 'ROOT'],
   '/admin': ['RRHH', 'DIRECTOR', 'ROOT'],
-  '/horarios': ['RRHH', 'DIRECTOR', 'ROOT'],
-  '/docentes': ['RRHH', 'DIRECTOR', 'ROOT'],
+  '/horarios': ['RRHH', 'DIRECTOR', 'JEFE_CARRERA', 'ROOT'],
+  '/docentes': ['RRHH', 'DIRECTOR', 'JEFE_CARRERA', 'ROOT'],
+  '/edificios': ['RRHH', 'DIRECTOR', 'JEFE_CARRERA', 'ROOT'],
+  '/carreras': ['RRHH', 'DIRECTOR', 'JEFE_CARRERA', 'ROOT'],
 };
 
   function normalizePath(pathname: string) {

@@ -1,68 +1,588 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+/* =========================
+   Tokens (Light, institutional)
+========================= */
+:root{
+  --bg: #f6f8fc;                 /* fondo plano */
+  --surface: rgba(255,255,255,.82);
+  --surface-solid: #ffffff;
+  --surface-2: rgba(255,255,255,.92);
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  --border: rgba(15, 23, 42, .12);
+  --border-2: rgba(15, 23, 42, .16);
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --text: #0f172a;
+  --muted: rgba(15, 23, 42, .65);
+
+  --primary: #0b3fa5;
+  --primary-2: #2563eb;
+  --ring: rgba(37,99,235,.25);
+
+  --danger: #dc2626;
+  --danger-bg: rgba(239,68,68,.10);
+  --danger-border: rgba(239,68,68,.25);
+
+  --shadow: 0 16px 45px rgba(2, 6, 23, .10);
+  --shadow-sm: 0 10px 20px rgba(2, 6, 23, .06);
+
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 10px;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
+*{ box-sizing: border-box; }
 
-body {
+html, body{ height: 100%; }
+
+body{
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial,
+    "Apple Color Emoji","Segoe UI Emoji";
+  color: var(--text);
+  background: var(--bg); /* ✅ solo color */
+}
+
+/* reset */
+button, input, select{ font: inherit; }
+a{ color: inherit; }
+
+/* =========================
+   Root / App shell
+========================= */
+#root{
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+.app-shell{
   min-height: 100vh;
+  display: flex;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+/* main area */
+.app-main{
+  flex: 1;
+  padding: 22px;
+  background: var(--bg);
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
+@media (min-width: 768px){
+  .app-main{ padding: 28px; }
+}
+
+.app-main__inner{
+  width: 100%;
+  max-width: 1220px;
+  margin: 0 auto;
+}
+/* =========================
+   Sidebar (clean + clearer)  ✅ FIX scroll + sin espacio arriba
+========================= */
+.sidebar{
+  width: 280px;
+  height: 100vh;                 /* ✅ alto exacto */
+  padding: 0;                    /* ✅ sin “espacio arriba” */
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  display: flex;                 /* ✅ layout para scroll interno */
+  flex-direction: column;
+  overflow: hidden;              /* ✅ el scroll será dentro */
+}
+
+/* Header con padding propio */
+.sidebar__header{
+  margin: 16px;                  /* ✅ antes era padding del sidebar */
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,.72));
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* ✅ NAV scrolleable */
+.sidebar__nav{
+  flex: 1;
+  min-height: 0;                 /* ✅ super importante para que scroll funcione en flex */
+  margin: 0 16px 16px;
+  display: grid;
+  gap: 10px;
+  overflow-y: auto;              /* ✅ aquí está el scroll */
+  padding-right: 2px;            /* evita que corte la sombra */
+}
+
+/* footer fijo abajo */
+.sidebar__footer{
+  margin: 0 16px 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.logout-btn{
+  width: 100%;
+  border: 1px solid var(--danger-border);
+  background: rgba(239,68,68,.08);
+  color: #991b1b;
+  font-weight: 950;
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
   cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  transition: background .15s ease, transform .08s ease;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
+.logout-btn:hover{
+  transform: translateY(-1px);
+  background: rgba(239,68,68,.12);
+}
+
+/* =========================
+   Page header / sections
+========================= */
+.page{
+  max-width: 1100px;
+}
+
+.page-header{
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.kicker{
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: rgba(15,23,42,.55);
+}
+
+.title{
+  margin: 8px 0 0;
+  font-size: 40px;
+  letter-spacing: -1px;
+  line-height: 1.05;
+}
+
+.subtitle{
+  margin: 10px 0 0;
+  color: var(--muted);
+}
+
+/* quick chip (header right) */
+.header-chip{
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.86);
+  box-shadow: var(--shadow-sm);
+  font-weight: 950;
+  color: var(--text);
+}
+
+.header-dot{
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--primary-2);
+  box-shadow: 0 0 0 6px rgba(37,99,235,.12);
+}
+
+/* =========================
+   Cards
+========================= */
+.card{
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.card__inner{
+  padding: 18px;
+}
+
+.card__head{
+  padding: 16px 18px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid rgba(15,23,42,.06);
+  background: rgba(255,255,255,.55);
+}
+
+.card__title{
+  margin: 0;
+  font-weight: 950;
+  letter-spacing: -.3px;
+}
+
+.card__desc{
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.actions{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+/* =========================
+   Forms
+========================= */
+.form-grid{
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 900px){
+  .form-grid{ grid-template-columns: 1fr 1fr 240px 240px; }
+}
+
+.field label{
+  display: block;
+  font-size: 12px;
+  font-weight: 950;
+  color: rgba(15,23,42,.72);
+  margin-bottom: 6px;
+}
+
+.control{
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.92);
+  outline: none;
+}
+
+.control:focus{
+  border-color: rgba(37,99,235,.35);
+  box-shadow: 0 0 0 6px var(--ring);
+}
+
+/* buttons */
+.btn{
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.88);
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 950;
+  transition: transform .08s ease, box-shadow .18s ease, background .18s ease, opacity .18s ease;
+}
+
+.btn:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 14px 26px rgba(2,6,23,.10);
+}
+
+.btn:disabled{
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+.btn--primary{
+  border-color: rgba(37,99,235,.25);
+  background: linear-gradient(180deg, rgba(37,99,235,.14), rgba(37,99,235,.07));
+  color: #0b2a7a;
+}
+
+.btn--danger{
+  border-color: var(--danger-border);
+  background: var(--danger-bg);
+  color: #991b1b;
+}
+
+.btn--soft{
+  border-color: rgba(37,99,235,.18);
+  background: rgba(37,99,235,.08);
+  color: #0b2a7a;
+}
+
+/* alerts */
+.alert{
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.80);
+  font-weight: 900;
+}
+
+.alert--ok{
+  border-color: rgba(34,197,94,.25);
+  background: rgba(34,197,94,.10);
+  color: #166534;
+}
+
+.alert--error{
+  border-color: rgba(239,68,68,.25);
+  background: rgba(239,68,68,.10);
+  color: #991b1b;
+}
+
+/* =========================
+   Table (more divisions)
+========================= */
+.table-wrap{
+  margin-top: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.86);
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+  box-shadow: var(--shadow-sm);
+}
+
+.table{
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+}
+
+.table th{
+  text-align: left;
+  padding: 12px;
+  font-size: 12px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(15,23,42,.58);
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,.92);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.table td{
+  padding: 12px;
+  border-bottom: 1px solid rgba(15,23,42,.08); /* más visible */
+  vertical-align: middle;
+}
+
+/* zebra + hover */
+.table tbody tr:nth-child(even){
+  background: rgba(2,6,23,.02);
+}
+
+.table tbody tr:hover{
+  background: rgba(37,99,235,.06);
+}
+
+/* helpers */
+.muted{
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.badge{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(37,99,235,.18);
+  background: rgba(37,99,235,.08);
+  font-weight: 950;
+  font-size: 12px;
+  color: #0b2a7a;
+}
+
+/* =========================
+   Responsive shell + Sidebar (mobile)
+========================= */
+
+/* evita scroll horizontal por tablas / sidebar */
+body {
+  overflow-x: hidden;
+}
+
+/* Topbar móvil (se oculta en desktop) */
+.app-topbar{
+  display: none;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.86);
+  box-shadow: var(--shadow-sm);
+}
+
+.topbar-btn{
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.88);
+  padding: 10px 12px;
+  cursor: pointer;
+  font-weight: 950;
+}
+
+.topbar-title{
+  font-weight: 950;
+  letter-spacing: -.2px;
+}
+
+/* Overlay del sidebar (móvil) */
+.sidebar-overlay{
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(2,6,23,.42);
+  border: 0;
+  padding: 0;
+  z-index: 40;
+}
+
+.sidebar-overlay--show{
+  display: block;
+}
+
+/* Botón cerrar dentro del sidebar (móvil) */
+.sidebar-close{
+  display: none;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.88);
+  padding: 8px 10px;
+  cursor: pointer;
+  font-weight: 950;
+}
+
+/* =========================
+   Breakpoint principal
+========================= */
+@media (max-width: 980px){
+  .app-shell{
+    display: block; /* main ocupa todo */
   }
-  a:hover {
-    color: #747bff;
+
+  .app-topbar{
+    display: flex; /* aparece en móvil/tablet */
   }
-  button {
-    background-color: #f9f9f9;
+
+  .app-main{
+    padding: 14px;
+  }
+
+  .app-main__inner{
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  /* Sidebar como off-canvas */
+  .sidebar{
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: min(86vw, 320px);
+    z-index: 50;
+    transform: translateX(-110%);
+    transition: transform .18s ease;
+    box-shadow: 20px 0 55px rgba(2,6,23,.18);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+  }
+
+  .sidebar--open{
+    transform: translateX(0);
+  }
+
+  .sidebar-close{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Ajustes finos en pantallas pequeñas */
+@media (max-width: 520px){
+  .app-main{
+    padding: 12px;
+  }
+
+  .title{
+    font-size: 32px;
+  }
+
+  .card__head{
+    align-items: flex-start;
+  }
+
+  .actions{
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .btn{
+    width: 100%;
+  }
+
+  /* inputs/botones en tablas: evita que se “aprieten” */
+  .table{
+    min-width: 720px; /* permite scroll en móvil sin romper layout */
+  }
+}
+
+/* =========================
+   Responsive helpers for pages with inline styles
+========================= */
+.hide-mobile { display: block; }
+.show-mobile { display: none; }
+
+@media (max-width: 700px){
+  .hide-mobile { display: none; }
+  .show-mobile { display: block; }
+}
+
+/* Card list for mobile */
+.mobile-cards{
+  display: grid;
+  gap: 12px;
+}
+
+.mobile-card{
+  border: 1px solid rgba(2,6,23,.10);
+  background: rgba(255,255,255,.92);
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: 0 10px 26px rgba(2,6,23,.08);
+}
+
+.mobile-row{
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.mobile-actions{
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 520px){
+  .mobile-actions button{
+    width: 100%;
   }
 }
