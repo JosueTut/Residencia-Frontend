@@ -126,7 +126,6 @@ const S = {
     zIndex: 120,
   },
 
-  // ✅ Pegado arriba + alto completo
   asideBase: {
     position: 'sticky' as const,
     top: 0,
@@ -141,7 +140,6 @@ const S = {
     flexDirection: 'column' as const,
   },
 
-  // ✅ Drawer móvil sin márgenes (para que no quede “flotando”)
   asideMobile: (open: boolean) =>
     ({
       position: 'fixed' as const,
@@ -234,7 +232,6 @@ const S = {
     fontSize: 12,
   } as const,
 
-  // ✅ Importante: minHeight: 0 para que overflowY funcione dentro de flex
   body: {
     padding: 12,
     display: 'flex',
@@ -245,7 +242,7 @@ const S = {
     background: 'linear-gradient(180deg, #ffffff 0%, #fbfdff 100%)',
   } as const,
 
-  // ✅ Este es el contenedor scrolleable del menú
+  // Este es el contenedor scrolleable del menú
   navScroll: {
     flex: 1,
     minHeight: 0,
@@ -383,7 +380,7 @@ export const Sidebar = ({ open = false, onClose }: SidebarProps) => {
               </div>
             </div>
 
-            {/* ✅ Solo móvil */}
+            {/* Solo móvil */}
             {isMobile ? (
               <button type="button" onClick={onClose} style={S.closeBtn} aria-label="Cerrar menú" title="Cerrar">
                 ✕
@@ -406,7 +403,7 @@ export const Sidebar = ({ open = false, onClose }: SidebarProps) => {
 
         {/* BODY */}
         <div style={S.body}>
-          {/* ✅ zona scrolleable */}
+          {/* zona scrolleable */}
           <div style={S.navScroll}>
             <div style={S.navWrap}>
               <div style={S.navTitle}>Navegación</div>

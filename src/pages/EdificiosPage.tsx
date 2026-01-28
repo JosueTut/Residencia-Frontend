@@ -10,9 +10,7 @@ import {
   type Edificio,
 } from '../api/edificios';
 
-/* ===============================
-   Icons (SVG inline)
-================================ */
+/* Icons (SVG inline) */
 const Icon = ({
   name,
 }: {
@@ -106,9 +104,7 @@ const Icon = ({
   }
 };
 
-/* ===============================
-   Styles (match your new UI)
-================================ */
+/* Styles */
 const S = {
   screen: {
     minHeight: '100vh',
@@ -370,9 +366,6 @@ const S = {
   } as const,
 };
 
-// ===============================
-// Sort natural (ej: 2 < 10, 101 < 1000)
-// ===============================
 const collatorEsNumeric = new Intl.Collator('es', {
   numeric: true,
   sensitivity: 'base',
@@ -380,8 +373,6 @@ const collatorEsNumeric = new Intl.Collator('es', {
 
 const sortByNombreNatural = <T extends { nombre: string }>(arr: T[]) =>
   [...arr].sort((a, b) => collatorEsNumeric.compare(String(a.nombre ?? ''), String(b.nombre ?? '')));
-
-// ===============================
 
 export const EdificiosPage = () => {
   const [items, setItems] = useState<Edificio[]>([]);
@@ -396,11 +387,11 @@ export const EdificiosPage = () => {
   // salon (por edificio)
   const [salonNombre, setSalonNombre] = useState<Record<number, string>>({});
 
-  // ✅ edición inline edificio
+  // edición inline edificio
   const [editEdId, setEditEdId] = useState<number | null>(null);
   const [editEdNombre, setEditEdNombre] = useState<string>('');
 
-  // ✅ edición inline salón
+  // edición inline salón
   const [editSalonId, setEditSalonId] = useState<number | null>(null);
   const [editSalonNombre, setEditSalonNombre] = useState<string>('');
 
@@ -415,7 +406,7 @@ export const EdificiosPage = () => {
 
   const canCreate = useMemo(() => nombreEdificio.trim().length >= 1, [nombreEdificio]);
 
-  /* ================== DATA ================== */
+  /* DATA */
   const load = async () => {
     try {
       setLoading(true);
@@ -470,7 +461,7 @@ export const EdificiosPage = () => {
     }
   };
 
-  // ====== Edición inline edificio ======
+  // Edición inline edificio
   const startEditEdificio = (id: number, current: string) => {
     setEditEdId(id);
     setEditEdNombre(current ?? '');
@@ -564,7 +555,7 @@ export const EdificiosPage = () => {
     }
   };
 
-  // ====== Edición inline salón ======
+  // Edición inline salón
   const startEditSalon = (salonId: number, current: string) => {
     setEditSalonId(salonId);
     setEditSalonNombre(current ?? '');
@@ -726,7 +717,7 @@ export const EdificiosPage = () => {
             {items.length === 0 ? (
               <div style={S.muted}>No hay edificios registrados.</div>
             ) : isSm ? (
-              // ====== Mobile cards ======
+              // Mobile cards
               <div style={{ display: 'grid', gap: 12 }}>
                 {items.map(e => (
                   <div key={e.id} style={S.mobileCard}>
@@ -857,7 +848,7 @@ export const EdificiosPage = () => {
                 ))}
               </div>
             ) : (
-              // ====== Desktop table ======
+              // Desktop table
               <div style={S.tableWrap}>
                 <table style={S.table}>
                   <thead>

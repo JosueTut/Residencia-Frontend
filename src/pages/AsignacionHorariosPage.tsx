@@ -18,10 +18,6 @@ const HORAS_CLASE = Array.from({ length: 21 - 7 + 1 }, (_, i) => {
 
 const normalize = (v?: string | null) => String(v ?? '').trim().toUpperCase();
 
-/**
- * ✅ Helper: algunos backends devuelven id con nombres distintos.
- * Si no hay ID válido, regresa null (y se deshabilitan acciones).
- */
 const getHorarioId = (h: any): number | null => {
   const raw =
     h?.id ?? h?.id_horario ?? h?.horario_id ?? h?.idHorario ?? h?.idhorario ?? h?.Id ?? h?.ID;
@@ -121,9 +117,7 @@ const detectarConflicto = (params: {
   return { ok: true as const };
 };
 
-// ===============================
 // Icons (SVG inline)
-// ===============================
 const Icon = ({
   name,
 }: {
@@ -244,9 +238,7 @@ const Icon = ({
   }
 };
 
-// ===============================
 // Styles (match screenshots)
-// ===============================
 const S = {
   screen: {
     minHeight: '100vh',
@@ -542,9 +534,7 @@ export const AsignacionHorariosPage = () => {
   const [filtroEdificio, setFiltroEdificio] = useState<string>('Todos');
   const [filtroHora, setFiltroHora] = useState<string>('Todos');
 
-  // =========================
-  // Responsive helper (sin CSS externo)
-  // =========================
+  // Responsive helper
   const [w, setW] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1200);
   useEffect(() => {
     const onR = () => setW(window.innerWidth);
@@ -570,7 +560,7 @@ export const AsignacionHorariosPage = () => {
   const rightStyle = isSm ? { ...S.itemRight, borderLeft: 'none', borderTop: '1px solid #eef2ff' } : S.itemRight;
   const infoGridStyle = isSm ? { ...S.infoGrid, gridTemplateColumns: '1fr' } : S.infoGrid;
 
-  /* ================== LOAD ================== */
+  /* LOAD */
   const loadData = async () => {
     try {
       setLoading(true);
@@ -594,7 +584,7 @@ export const AsignacionHorariosPage = () => {
     loadData();
   }, []);
 
-  /* ================== CARRERAS / PROFES FILTRADOS ================== */
+  /* CARRERAS / PROFES FILTRADOS */
   const carrerasOpciones = useMemo(() => {
     const carreras = profesores.map(p => String((p as any).carrera ?? '').trim()).filter(Boolean);
     return Array.from(new Set(carreras)).sort((a, b) => a.localeCompare(b));
@@ -609,7 +599,7 @@ export const AsignacionHorariosPage = () => {
     setProfesorId('');
   }, [carreraSel]);
 
-  /* ================== OPTIONS (CREATE) ================== */
+  /* OPTIONS (CREATE) */
   const edificiosOpciones = useMemo(() => {
     const nombres = edificiosCrud.map(e => (e.nombre ?? '').trim()).filter(Boolean) as string[];
     return Array.from(new Set(nombres)).sort((a, b) => a.localeCompare(b));
@@ -625,7 +615,7 @@ export const AsignacionHorariosPage = () => {
   const edificioFinal = edificioSel.trim();
   const salonFinal = salonSel.trim();
 
-  /* ================== OPTIONS (EDIT) ================== */
+  /* OPTIONS (EDIT) */
   const editSalonesOpciones = useMemo(() => {
     if (!editEdificioSel) return [];
     const ed = edificiosCrud.find(e => (e.nombre ?? '').trim() === editEdificioSel);
@@ -641,7 +631,7 @@ export const AsignacionHorariosPage = () => {
     return editSalonSel.trim() || editSalonManual.trim();
   }, [editSalonSel, editSalonManual]);
 
-  /* ================== CONFLICTOS (NO MOVER ABAJO DEL RETURN) ================== */
+  /* CONFLICTOS */
   const conflictoCrear = useMemo(() => {
     if (!profesorId || !horaClase || !edificioFinal || !salonFinal) return { ok: true as const };
     return detectarConflicto({
@@ -668,7 +658,7 @@ export const AsignacionHorariosPage = () => {
     });
   }, [horarios, editId, editProfesorId, editDia, editHora, editEdificioFinal, editSalonFinal]);
 
-  /* ================== CREATE ================== */
+  /* CREATE */
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
@@ -714,7 +704,7 @@ export const AsignacionHorariosPage = () => {
     }
   };
 
-  /* ================== EDIT ================== */
+  /* EDIT */
   const iniciarEdicion = (h: Horario) => {
     const hid = getHorarioId(h as any);
     if (hid == null) {
@@ -808,7 +798,7 @@ export const AsignacionHorariosPage = () => {
     }
   };
 
-  /* ================== DELETE ================== */
+  /* DELETE */
   const handleDelete = async (id: number | null) => {
     if (id == null) {
       setError('No se pudo eliminar: el horario no tiene un ID válido.');
@@ -836,7 +826,7 @@ export const AsignacionHorariosPage = () => {
     }
   };
 
-  /* ================== FILTER VIEW ================== */
+  /* FILTER VIEW */
   const edificiosDisponibles = useMemo(() => {
     return Array.from(new Set(horarios.map(h => (h.edificio ?? '').trim()).filter(Boolean))).sort((a, b) =>
       a.localeCompare(b),
@@ -868,7 +858,6 @@ export const AsignacionHorariosPage = () => {
 
   const total = horariosFiltrados.length;
 
-  // ✅ IMPORTANTE: este return va DESPUÉS de todos los hooks (para no romper Rules of Hooks)
   if (loading) return <p style={{ padding: 24 }}>Cargando datos...</p>;
 
   return (

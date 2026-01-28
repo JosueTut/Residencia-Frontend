@@ -15,23 +15,21 @@ const ESTADOS = [
   'SUSPENDIDO',
 ] as const;
 
-// ✅ Tipos locales
+// Tipos locales
 type SalonCatalogo = { nombre?: string | null };
 type EdificioCatalogo = { nombre?: string | null; salones?: SalonCatalogo[] | null };
 
-// ✅ Horas permitidas: 07:00 a 21:00
+// Horas permitidas: 07:00 a 21:00
 const HORAS_CLASE = Array.from({ length: 21 - 7 + 1 }, (_, i) => {
   const h = i + 7;
   return `${String(h).padStart(2, '0')}:00`;
 });
 
-// ✅ Date helpers (local YYYY-MM-DD)
+// Date helpers (local YYYY-MM-DD)
 const pad2 = (n: number) => String(n).padStart(2, '0');
 const toLocalYMD = (d: Date) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 
-// ===============================
 // Icons (SVG inline)
-// ===============================
 const Icon = ({
   name,
 }: {
@@ -143,9 +141,7 @@ const Icon = ({
   }
 };
 
-// ===============================
-// Styles (match screenshots)
-// ===============================
+// Styles
 const S = {
   screen: {
     minHeight: '100vh',
@@ -398,12 +394,12 @@ export const RegistroAsistenciasPage = () => {
   const [mensaje, setMensaje] = useState('');
   const [error, setError] = useState('');
 
-  // ✅ filtros
+  // filtros
   const [filtroHora, setFiltroHora] = useState<string>('Todas');
   const [filtroEdificio, setFiltroEdificio] = useState<string>('Todos');
   const [filtroSalon, setFiltroSalon] = useState<string>('Todos');
 
-  // ✅ catálogo edificios/salones
+  // catálogo edificios/salones
   const [edificiosCrud, setEdificiosCrud] = useState<EdificioCatalogo[]>([]);
 
   // cargar catálogo una vez
@@ -419,7 +415,6 @@ export const RegistroAsistenciasPage = () => {
     })();
   }, []);
 
-  // responsive helper (sin CSS externo)
   const [w, setW] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1200);
   useEffect(() => {
     const onR = () => setW(window.innerWidth);
@@ -513,7 +508,6 @@ export const RegistroAsistenciasPage = () => {
 
   useEffect(() => {
     cargar();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fecha]);
 
   const handleChange = (id: number, field: 'estado' | 'nota', value: string) => {

@@ -93,7 +93,7 @@ export function App() {
 
       </Route>
 
-      {/* Ruta comodín: cualquier ruta no existente redirige al login */}
+      {/* Cualquier ruta no existente redirige al login */}
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );

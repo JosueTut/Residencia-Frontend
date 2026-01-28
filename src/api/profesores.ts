@@ -37,7 +37,7 @@ export async function createDocente(payload: CreateDocentePayload): Promise<Doce
   return res.data;
 }
 
-// ✅ NUEVO: actualizar nombre/carrera (PATCH /api/v1/docentes/:id)
+// Actualizar nombre/carrera (PATCH /api/v1/docentes/:id)
 export async function updateDocente(id: number, payload: UpdateDocentePayload): Promise<Docente> {
   const res = await apiClient.patch(`/api/v1/docentes/${id}`, payload);
   return res.data;

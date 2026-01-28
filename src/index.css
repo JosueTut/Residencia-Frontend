@@ -1,8 +1,6 @@
-/* =========================
-   Tokens (Light, institutional)
-========================= */
+/* Tokens */
 :root{
-  --bg: #f6f8fc;                 /* fondo plano */
+  --bg: #f6f8fc;
   --surface: rgba(255,255,255,.82);
   --surface-solid: #ffffff;
   --surface-2: rgba(255,255,255,.92);
@@ -38,16 +36,12 @@ body{
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial,
     "Apple Color Emoji","Segoe UI Emoji";
   color: var(--text);
-  background: var(--bg); /* ✅ solo color */
+  background: var(--bg); 
 }
 
-/* reset */
 button, input, select{ font: inherit; }
 a{ color: inherit; }
 
-/* =========================
-   Root / App shell
-========================= */
 #root{
   max-width: none;
   margin: 0;
@@ -76,26 +70,25 @@ a{ color: inherit; }
   max-width: 1220px;
   margin: 0 auto;
 }
-/* =========================
-   Sidebar (clean + clearer)  ✅ FIX scroll + sin espacio arriba
-========================= */
+
+/* Sidebar */
 .sidebar{
   width: 280px;
-  height: 100vh;                 /* ✅ alto exacto */
-  padding: 0;                    /* ✅ sin “espacio arriba” */
+  height: 100vh;
+  padding: 0;
   border-right: 1px solid var(--border);
   background: var(--surface);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 
-  display: flex;                 /* ✅ layout para scroll interno */
+  display: flex;
   flex-direction: column;
-  overflow: hidden;              /* ✅ el scroll será dentro */
+  overflow: hidden;
 }
 
 /* Header con padding propio */
 .sidebar__header{
-  margin: 16px;                  /* ✅ antes era padding del sidebar */
+  margin: 16px;
   border: 1px solid var(--border);
   background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,.72));
   border-radius: var(--radius-lg);
@@ -103,15 +96,15 @@ a{ color: inherit; }
   box-shadow: var(--shadow-sm);
 }
 
-/* ✅ NAV scrolleable */
+/* NAV scrolleable */
 .sidebar__nav{
   flex: 1;
-  min-height: 0;                 /* ✅ super importante para que scroll funcione en flex */
+  min-height: 0;
   margin: 0 16px 16px;
   display: grid;
   gap: 10px;
-  overflow-y: auto;              /* ✅ aquí está el scroll */
-  padding-right: 2px;            /* evita que corte la sombra */
+  overflow-y: auto;              /* aquí está el scroll */
+  padding-right: 2px;
 }
 
 /* footer fijo abajo */
@@ -138,9 +131,7 @@ a{ color: inherit; }
   background: rgba(239,68,68,.12);
 }
 
-/* =========================
-   Page header / sections
-========================= */
+/* Page header / sections */
 .page{
   max-width: 1100px;
 }
@@ -174,7 +165,6 @@ a{ color: inherit; }
   color: var(--muted);
 }
 
-/* quick chip (header right) */
 .header-chip{
   display: inline-flex;
   align-items: center;
@@ -196,9 +186,7 @@ a{ color: inherit; }
   box-shadow: 0 0 0 6px rgba(37,99,235,.12);
 }
 
-/* =========================
-   Cards
-========================= */
+/* Cards */
 .card{
   border: 1px solid var(--border);
   background: var(--surface);
@@ -241,9 +229,7 @@ a{ color: inherit; }
   align-items: center;
 }
 
-/* =========================
-   Forms
-========================= */
+/* Forms */
 .form-grid{
   display: grid;
   gap: 12px;
@@ -336,9 +322,7 @@ a{ color: inherit; }
   color: #991b1b;
 }
 
-/* =========================
-   Table (more divisions)
-========================= */
+/* Table */
 .table-wrap{
   margin-top: 14px;
   border: 1px solid var(--border);
@@ -370,7 +354,7 @@ a{ color: inherit; }
 
 .table td{
   padding: 12px;
-  border-bottom: 1px solid rgba(15,23,42,.08); /* más visible */
+  border-bottom: 1px solid rgba(15,23,42,.08); 
   vertical-align: middle;
 }
 
@@ -403,9 +387,7 @@ a{ color: inherit; }
   color: #0b2a7a;
 }
 
-/* =========================
-   Responsive shell + Sidebar (mobile)
-========================= */
+/* Responsive shell + Sidebar (mobile) */
 
 /* evita scroll horizontal por tablas / sidebar */
 body {
@@ -465,12 +447,10 @@ body {
   font-weight: 950;
 }
 
-/* =========================
-   Breakpoint principal
-========================= */
+/* Breakpoint principal */
 @media (max-width: 980px){
   .app-shell{
-    display: block; /* main ocupa todo */
+    display: block; 
   }
 
   .app-topbar{
@@ -486,7 +466,6 @@ body {
     margin: 0 auto;
   }
 
-  /* Sidebar como off-canvas */
   .sidebar{
     position: fixed;
     top: 0;
@@ -514,7 +493,7 @@ body {
   }
 }
 
-/* Ajustes finos en pantallas pequeñas */
+/* Ajustes en pantallas pequeñas */
 @media (max-width: 520px){
   .app-main{
     padding: 12px;
@@ -537,15 +516,13 @@ body {
     width: 100%;
   }
 
-  /* inputs/botones en tablas: evita que se “aprieten” */
+  /* inputs/botones en tablas: evita que se aprieten */
   .table{
-    min-width: 720px; /* permite scroll en móvil sin romper layout */
+    min-width: 720px; /* permite scroll en móvil */
   }
 }
 
-/* =========================
-   Responsive helpers for pages with inline styles
-========================= */
+/* Responsive helpers */
 .hide-mobile { display: block; }
 .show-mobile { display: none; }
 
@@ -554,7 +531,7 @@ body {
   .show-mobile { display: block; }
 }
 
-/* Card list for mobile */
+/* Card list (mobile) */
 .mobile-cards{
   display: grid;
   gap: 12px;

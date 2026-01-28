@@ -1,8 +1,6 @@
 import { useAuth } from '../context/authContext';
 
-/* ===============================
-   Icon (SVG inline)
-================================ */
+/* Icon (SVG inline) */
 const Icon = ({ name }: { name: 'home' | 'bolt' | 'note' | 'shield' }) => {
   const common = {
     width: 18,
@@ -49,9 +47,7 @@ const Icon = ({ name }: { name: 'home' | 'bolt' | 'note' | 'shield' }) => {
 export const HomePage = () => {
   const { user } = useAuth();
 
-  /* ===============================
-     Styles (institutional)
-  ================================ */
+  /* Styles (institutional) */
   const styles = {
     screen: {
       minHeight: '100vh',

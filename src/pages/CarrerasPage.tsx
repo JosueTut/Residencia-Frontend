@@ -7,9 +7,7 @@ import {
   type Carrera,
 } from '../api/carreras';
 
-/* ===============================
-   Icons (SVG inline)
-================================ */
+/* Icons (SVG inline) */
 const Icon = ({
   name,
 }: {
@@ -85,9 +83,7 @@ const Icon = ({
   }
 };
 
-/* ===============================
-   Styles (match Edificios UI)
-================================ */
+/* Styles (match Edificios UI) */
 const S = {
   screen: {
     minHeight: '100vh',
@@ -337,7 +333,7 @@ export const CarrerasPage = () => {
   const [editId, setEditId] = useState<number | null>(null);
   const [editNombre, setEditNombre] = useState('');
 
-  // responsive simple (cards en móvil)
+  // responsive (cards en móvil)
   const [w, setW] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1200);
   useEffect(() => {
     const onR = () => setW(window.innerWidth);

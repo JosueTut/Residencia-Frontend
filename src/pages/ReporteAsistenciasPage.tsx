@@ -1,13 +1,10 @@
-// src/pages/ReporteAsistenciasPage.tsx
 import { useEffect, useMemo, useState } from 'react';
 import { getAsistenciasPorRango, type ReporteAsistenciaItem } from '../api/asistencias';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { useAuth } from '../context/authContext';
 
-// ===============================
 // Helpers: estado -> código
-// ===============================
 const normalizeText = (v?: string) => String(v ?? '').toUpperCase().trim();
 
 const estadoToCodigo = (estadoRaw?: string) => {
@@ -29,9 +26,7 @@ const estadoToCodigo = (estadoRaw?: string) => {
   return MAP[e] ?? (e ? e.slice(0, 3) : '');
 };
 
-// ===============================
 // Helpers: código -> texto (para mostrar en PDF)
-// ===============================
 const CODIGO_LABEL: Record<string, string> = {
   P: 'Presente',
   A: 'Ausente',
@@ -54,10 +49,7 @@ const codeWithLabel = (codigo?: string) => {
   return label ? `${c} (${label})` : c;
 };
 
-
-// ===============================
 // Date helpers (YYYY-MM-DD)
-// ===============================
 const pad2 = (n: number) => String(n).padStart(2, '0');
 const toYMD = (d: Date) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 const parseYMD = (s: string) => {
@@ -70,10 +62,8 @@ const addDays = (d: Date, days: number) => {
   return x;
 };
 
-// ===============================
 // Bloqueo de fechas futuras (YYYY-MM-DD)
-// ===============================
-const todayYMD = () => toYMD(new Date()); // ✅ hoy en horario local
+const todayYMD = () => toYMD(new Date()); 
 const isFutureYMD = (ymd?: string) => {
   const t = todayYMD();
   const v = String(ymd ?? '').slice(0, 10);
@@ -102,7 +92,7 @@ const getDatesBetweenInclusive = (startYmd: string, endYmd: string) => {
   return out;
 };
 
-// LUN..DOM (ISO)
+// LUN..DOM 
 const isoWeekday = (d: Date) => {
   const day = d.getDay(); // DOM=0 ... SAB=6
   return day === 0 ? 7 : day; // DOM -> 7
@@ -174,9 +164,7 @@ type ResumenSortKey =
 
 type ResumenSortDir = 'asc' | 'desc';
 
-// ===============================
 // Icons (SVG inline)
-// ===============================
 const Icon = ({
   name,
 }: {
@@ -332,9 +320,7 @@ const Icon = ({
   }
 };
 
-// ===============================
-// Styles (MISMO DISEÑO)
-// ===============================
+// Styles
 const S = {
   screen: {
     minHeight: '100vh',
@@ -738,7 +724,6 @@ const S = {
     }
   },
 
-  // Modal (simple, sin cambiar diseño de tablas)
   modalOverlay: {
     position: 'fixed' as const,
     inset: 0,
@@ -790,9 +775,7 @@ const S = {
   modalValue: { marginTop: 6, fontWeight: 550, color: '#0f172a' } as const,
 };
 
-// ===============================
-// Export helpers (CSV + Excel simple)
-// ===============================
+// Export helpers 
 const downloadBlob = (filename: string, mime: string, content: string) => {
   const blob = new Blob([content], { type: mime });
   const url = URL.createObjectURL(blob);
@@ -816,13 +799,13 @@ const toTime = (v?: string | null) => {
 
   const s = String(v).trim();
 
-  // ✅ Si viene como TIME de BD: "HH:mm" o "HH:mm:ss"
+  // Si viene como TIME de BD: "HH:mm" o "HH:mm:ss"
   if (/^\d{2}:\d{2}(:\d{2})?$/.test(s)) {
     // devuelve HH:mm:ss o HH:mm según venga
     return s.length >= 8 ? s.slice(0, 8) : s;
   }
 
-  // ✅ Si viene como ISO datetime
+  // Si viene como ISO datetime
   const dt = new Date(s);
   if (Number.isNaN(dt.getTime())) return '';
 
@@ -835,23 +818,19 @@ const toHHmm = (v?: string | null) => {
 
   const s = String(v).trim();
 
-  // ✅ Si viene como TIME de BD: "HH:mm" o "HH:mm:ss"
+  // Si viene como TIME de BD: "HH:mm" o "HH:mm:ss"
   if (/^\d{2}:\d{2}(:\d{2})?$/.test(s)) {
     return s.slice(0, 5); // HH:mm
   }
 
-  // ✅ Si viene como ISO datetime
+  // Si viene como ISO datetime
   const dt = new Date(s);
   if (Number.isNaN(dt.getTime())) return '';
 
   return dt.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
 };
 
-
-
-// ===============================
 // PDF helpers (estilo + footer + KPIs + notas)
-// ===============================
 const fmtPct = (n: number) => `${Math.round(n)}%`;
 
 const safeFileName = (s: string) =>
@@ -940,7 +919,6 @@ type PdfNote = {
   nota: string;
 };
 
-
 const collectProfessorNotes = (detalle: ReporteAsistenciaItem[]) => {
   const notes: PdfNote[] = [];
   let n = 1;
@@ -965,7 +943,6 @@ const collectProfessorNotes = (detalle: ReporteAsistenciaItem[]) => {
       nota,
     });
   }
-
   return notes;
 };
 
@@ -1000,7 +977,7 @@ const addProfessorCalendarPdf = (
 
   if (!weeks.length || !rows.length) return;
 
-  // Cada semana = una tabla (landscape)
+  // Cada semana = una tabla 
   for (let i = 0; i < weeks.length; i++) {
     const wk = weeks[i];
 
@@ -1048,9 +1025,7 @@ const addProfessorCalendarPdf = (
   }
 };
 
-// ===============================
-// Calendar build (con notas + item para modal)
-// ===============================
+// Calendar build (con notas)
 type CalCell = { code: string; note: string; item?: ReporteAsistenciaItem | null };
 type CalRow = {
   key: string;
@@ -1058,7 +1033,7 @@ type CalRow = {
   edificio: string;
   salon: string;
   hora: string;
-  byDate: Record<string, CalCell>; // ymd -> {code,note,item}
+  byDate: Record<string, CalCell>; 
 };
 
 function buildCalendarRows(items: ReporteAsistenciaItem[], dates: { ymd: string; d: Date }[]): CalRow[] {
@@ -1120,9 +1095,7 @@ function buildCalendarRows(items: ReporteAsistenciaItem[], dates: { ymd: string;
   return rows;
 }
 
-// ===============================
 // Modal info
-// ===============================
 type NoteModalInfo = {
   profesor: string;
   fechaYmd: string;
@@ -1138,9 +1111,7 @@ type NoteModalInfo = {
   nota: string;
 } | null;
 
-// ===============================
 // Calendario por semanas (tablas apiladas)
-// ===============================
 const ProfessorCalendarWeekly = ({
   profesor,
   fechaInicio,
@@ -1389,9 +1360,7 @@ const ProfessorCalendarWeekly = ({
   );
 };
 
-// ===============================
 // Export builders (para profesor seleccionado)
-// ===============================
 const buildExportRows = (detalle: ReporteAsistenciaItem[]) => {
   const toMin = (v: string) => {
     const mm = (v ?? '').match(/(\d{1,2})(?::(\d{2}))?/);
@@ -1520,14 +1489,11 @@ const exportProfesorExcel = (profesor: string, detalle: ReporteAsistenciaItem[],
   downloadBlob(filename, 'application/vnd.ms-excel;charset=utf-8', html);
 };
 
-// ===============================
 // PAGE
-// ===============================
 export const ReporteAsistenciasPage = () => {
-  // ✅ HOOK AQUÍ ADENTRO (CORREGIDO)
   const { user } = useAuth();
 
-  const hoy = toYMD(new Date()); // ✅ hoy en horario local
+  const hoy = toYMD(new Date());
 
   const [fechaInicio, setFechaInicio] = useState(hoy);
   const [fechaFin, setFechaFin] = useState(hoy);
@@ -1549,7 +1515,6 @@ export const ReporteAsistenciasPage = () => {
 
   const [noteModal, setNoteModal] = useState<NoteModalInfo>(null);
 
-  // responsive (sin CSS externo)
   const [w, setW] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1200);
   useEffect(() => {
     const onR = () => setW(window.innerWidth);
@@ -1595,7 +1560,6 @@ export const ReporteAsistenciasPage = () => {
 
   useEffect(() => {
     cargar();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fechaInicio, fechaFin]);
 
   const dataOrdenadaBase = useMemo(() => {
@@ -1659,9 +1623,7 @@ export const ReporteAsistenciasPage = () => {
     return Array.from(set).filter(Boolean).sort((a, b) => a.localeCompare(b));
   }, [dataOrdenadaBase]);
 
-  // ===============================
   // RESUMEN POR PROFESOR
-  // ===============================
   const resumenPorProfesor = useMemo(() => {
     const codigos = ['P', 'A', 'C', 'I', 'R', 'S', 'JM'];
 
@@ -1753,20 +1715,16 @@ export const ReporteAsistenciasPage = () => {
     ...S.thSortable,
   });
 
-  // ===============================
   // PROFESOR SELECCIONADO
-  // ===============================
   const detalleProfesor = useMemo(() => {
     if (!selectedProfesor) return [];
     const p = normalizeText(selectedProfesor);
     return dataFiltrada.filter(r => normalizeText(r.profesor) === p);
   }, [dataFiltrada, selectedProfesor]);
 
-  // ===============================
   // PDF GENERAL
-  // ===============================
   const generarPDF = () => {
-    const doc = new jsPDF(); // portrait
+    const doc = new jsPDF(); 
 
     const now = new Date();
     const generadoEl = now.toLocaleString();
@@ -1830,7 +1788,7 @@ export const ReporteAsistenciasPage = () => {
         String(r.edificio ?? ''),
         String(r.salon ?? ''),
         String(r.horaClase ?? ''),
-        toHHmm((r as any).horaRegistro ?? null), // ✅ aquí se ve HH:mm aunque venga "HH:mm:ss"
+        toHHmm((r as any).horaRegistro ?? null), 
         estadoToCodigo((r as any).estado),
         truncate((r as any).notaAdicional ?? '', 60),
       ]),
@@ -1849,9 +1807,7 @@ export const ReporteAsistenciasPage = () => {
     doc.save(filename);
   };
 
-  // ===============================
   // PDF SOLO PROFESOR
-  // ===============================
   const generarPDFProfesor = (profesor: string) => {
     const doc = new jsPDF(); // portrait
 
@@ -1909,7 +1865,7 @@ export const ReporteAsistenciasPage = () => {
         String(r.edificio ?? ''),
         String(r.salon ?? ''),
         String(r.horaClase ?? ''),
-        toHHmm((r as any).horaRegistro ?? null), // ✅ HH:mm
+        toHHmm((r as any).horaRegistro ?? null), 
         estadoToCodigo((r as any).estado),
         truncate((r as any).notaAdicional ?? '', 60),
       ]),
@@ -2079,7 +2035,7 @@ export const ReporteAsistenciasPage = () => {
                   onChange={e => {
                     const v = clampToTodayYMD(e.target.value);
                     setFechaInicio(v);
-                    // si inicio queda después del fin, ajusta fin
+                    // si la fecha inicio queda después de fecha fin, ajusta fecha fin
                     if (fechaFin && v && v > fechaFin) setFechaFin(v);
                   }}
                   style={S.control}

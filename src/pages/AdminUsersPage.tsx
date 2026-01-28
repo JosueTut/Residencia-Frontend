@@ -12,12 +12,9 @@ const ROLES = [
   'ROOT',
 ] as const;
 
-// ✅ para mostrar bonito en UI (sin afectar el value real)
 const roleLabel = (r: string) => String(r ?? '').replace(/_/g, ' ');
 
-/* ===============================
-   Icons (SVG inline)
-================================ */
+/* Icons (SVG inline) */
 const Icon = ({
   name,
 }: {
@@ -116,9 +113,7 @@ const Icon = ({
   }
 };
 
-/* ===============================
-   Styles (match Carreras/Edificios)
-================================ */
+/* Styles (match Carreras/Edificios) */
 const S = {
   screen: {
     minHeight: '100vh',
@@ -401,9 +396,7 @@ export const AdminUsersPage = () => {
     return editId != null && editName.trim().length >= 2 && editEmail.trim().includes('@') && Boolean(editRol);
   }, [editId, editName, editEmail, editRol]);
 
-  // =========================
   // Data
-  // =========================
   const load = async () => {
     try {
       setLoading(true);
@@ -441,7 +434,7 @@ export const AdminUsersPage = () => {
         name: name.trim(),
         email: email.trim(),
         password: password.trim(),
-        rol, // ✅ ahora siempre manda JEFE_CARRERA (no con espacios)
+        rol,
       });
 
       setUsers(prev => [nuevo, ...prev]);
@@ -465,7 +458,7 @@ export const AdminUsersPage = () => {
     setEditId(u.id);
     setEditName(u.name ?? '');
     setEditEmail(u.email ?? '');
-    setEditRol(u.rol as any); // aquí debe venir JEFE_CARRERA ya normalizado
+    setEditRol(u.rol as any);
     setError('');
     setOk('');
   };

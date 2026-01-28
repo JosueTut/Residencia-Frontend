@@ -1,8 +1,6 @@
 import { useAuth } from '../context/authContext';
 
-/* ===============================
-   Icon (SVG inline)
-================================ */
+/* Icon (SVG inline) */
 const Icon = ({ name }: { name: 'user' | 'shield' | 'mail' }) => {
   const common = {
     width: 18,
@@ -44,9 +42,7 @@ const Icon = ({ name }: { name: 'user' | 'shield' | 'mail' }) => {
 export const UserprofilePage = () => {
   const { user } = useAuth();
 
-  /* ===============================
-     Styles (match new theme)
-  ================================ */
+  /* Styles (match new theme) */
   const styles = {
     screen: {
       minHeight: '100vh',
@@ -329,9 +325,6 @@ export const UserprofilePage = () => {
           </div>
         </section>
       </div>
-
-      {/* Responsive: 2 columnas en pantallas medianas (CSS inline via media no existe),
-          pero si quieres, lo hacemos con una clase global o con useWindowWidth como en AdminUsers. */}
     </div>
   );
 };

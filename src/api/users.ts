@@ -39,7 +39,7 @@ export async function createUser(payload: CreateUserPayload): Promise<UserRow> {
   return res.data;
 }
 
-// ✅ NUEVO: actualizar usuario
+// Actualizar usuario
 export async function updateUser(
   id: number,
   payload: UpdateUserPayload,

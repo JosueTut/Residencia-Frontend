@@ -1,73 +1,90 @@
-# React + TypeScript + Vite
+# Residencia - Frontend (Web)
+Sistema para la supervisión de la asistencia del docente en el aula (TecNM Campus Cancún).
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Este repositorio contiene el frontend web desarrollado con React + Vite. La interfaz permite iniciar sesión, consultar información por fecha, visualizar historial, generar reportes y ejecutar acciones según el rol del usuario (por ejemplo, correcciones controladas).
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Tecnologías
+- React
+- Vite
+- TypeScript (si aplica en el proyecto)
+- (UI) Tailwind (si aplica en el proyecto)
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Requisitos previos
+- Git
+- Node.js (recomendado: 18+)
+- Backend corriendo (ver repo del backend)
+  - Por defecto: http://localhost:3000
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## 1) Clonar el repositorio
+```bash
+git clone https://github.com/JosueTut/Residencia-Frontend.git
+cd Residencia-Frontend
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 2) Instalar dependencias
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```bash
+npm install
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
 ```
+
+## 3) Ejecutar el frontend
+
+```bash
+npm run dev
+```
+
+Vite normalmente levanta en:
+
+http://localhost:5173
+
+Build (producción)
+
+```bash
+npm run build
+npm run preview
+```
+
+---
+
+Flujo funcional (alto nivel)
+
+- Login: obtiene token JWT desde el backend.
+- Operación por fecha: consulta/visualiza información según endpoints del backend.
+- Acciones por rol: Roles administrativos (consulta y reportes), Roles autorizados (correcciones según permisos)
+- Reportes: por fecha y por rango
+- Exportación: PDF / Excel / CSV
+
+--- 
+
+Conexión con el Backend
+
+Asegurarse de:
+
+- Backend corriendo en http://localhost:3000
+- MySQL activo (Docker) y backend conectado correctamente
+- Usuario válido en la BD para poder iniciar sesión
+
+--- 
+
+Estructura general
+
+- public/: archivos estáticos
+- src/: componentes, vistas y lógica de consumo de API
+
+---
+
+Documentación de código
+
+El proyecto mantiene comentarios dentro de los archivos para explicar:
+
+- Componentes principales
+- Pantallas/vistas
+- Consumo de endpoints
+- Manejo de sesión/token

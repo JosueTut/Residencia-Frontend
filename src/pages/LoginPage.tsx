@@ -26,7 +26,7 @@ export const LoginPage = () => {
     return <p style={{ textAlign: 'center', marginTop: 80 }}>Cargando...</p>;
   }
 
-  // ===== ESTILOS BASE =====
+  // STYLES 
   const page = {
     minHeight: '100vh',
     display: 'flex',

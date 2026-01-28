@@ -8,7 +8,7 @@ export const AppLayout = () => {
 
   const closeSidebar = () => setSidebarOpen(false);
 
-  // ✅ Cierra sidebar al cambiar de ruta (móvil)
+  // Cierra sidebar al cambiar de ruta (móvil)
   useEffect(() => {
     closeSidebar();
     // eslint-disable-next-line react-hooks/exhaustive-deps

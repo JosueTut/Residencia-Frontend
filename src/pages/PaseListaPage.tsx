@@ -15,19 +15,16 @@ const ESTADOS: { value: EstadoAsistencia; label: string }[] = [
   { value: 'COMISION', label: 'Comisión' },
 ];
 
-// ✅ Tipos locales (evita error de "EdificioDto no exportado")
 type SalonCatalogo = { nombre?: string | null };
 type EdificioCatalogo = { nombre?: string | null; salones?: SalonCatalogo[] | null };
 
-// ✅ Horas permitidas: 07:00 a 21:00 (para el filtro)
+// Horas permitidas: 07:00 a 21:00 (para el filtro)
 const HORAS_CLASE = Array.from({ length: 21 - 7 + 1 }, (_, i) => {
   const h = i + 7;
   return `${String(h).padStart(2, '0')}:00`;
 });
 
-// ===============================
 // Helpers
-// ===============================
 const normalize = (v?: string) => String(v ?? '').trim().toUpperCase();
 
 const labelFechaHora = () => {
@@ -41,9 +38,7 @@ const labelFechaHora = () => {
   return `${fechaTxt}, ${horaTxt}`;
 };
 
-// ===============================
 // Date helpers (YYYY-MM-DD) en hora LOCAL (evita bug UTC)
-// ===============================
 const pad2 = (n: number) => String(n).padStart(2, '0');
 const toYMD = (d: Date) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 
@@ -56,9 +51,7 @@ const clampToTodayYMD = (ymd?: string) => {
   return v > t ? t : v;
 };
 
-// ===============================
 // Icons (SVG inline)
-// ===============================
 const Icon = ({
   name,
 }: {
@@ -150,9 +143,7 @@ const Icon = ({
   }
 };
 
-// ===============================
-// Styles (match screenshots)
-// ===============================
+// Styles
 const S = {
   screen: {
     minHeight: '100vh',
@@ -437,7 +428,6 @@ const S = {
       fontWeight: 550,
     } as const),
 
-  // ✅ Notificación verde tipo la imagen
   okBanner: {
     marginTop: 12,
     borderRadius: 12,
@@ -465,7 +455,7 @@ const S = {
 };
 
 export const PaseListaPage = () => {
-  const [fecha, setFecha] = useState(() => todayLocalYMD()); // ✅ hoy local
+  const [fecha, setFecha] = useState(() => todayLocalYMD()); 
 
   const [horarios, setHorarios] = useState<PaseListaItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -476,12 +466,12 @@ export const PaseListaPage = () => {
   const [estadoPorHorario, setEstadoPorHorario] = useState<Record<number, EstadoAsistencia>>({});
   const [notaPorHorario, setNotaPorHorario] = useState<Record<number, string>>({});
 
-  // ✅ filtros
+  // filtros
   const [filtroHora, setFiltroHora] = useState<string>('Todas');
   const [filtroEdificio, setFiltroEdificio] = useState<string>('Todos');
   const [filtroSalon, setFiltroSalon] = useState<string>('Todos');
 
-  // ✅ catálogo edificios/salones
+  // catálogo edificios/salones
   const [edificiosCrud, setEdificiosCrud] = useState<EdificioCatalogo[]>([]);
 
   // cargar catálogo una vez
@@ -516,10 +506,10 @@ export const PaseListaPage = () => {
     return ['Todos', ...Array.from(new Set(salones)).sort((a, b) => a.localeCompare(b))];
   }, [edificiosCrud, filtroEdificio]);
 
-  // ✅ Horas del filtro: fijo 07:00 a 21:00 (+ Todas)
+  // Horas del filtro: fijo 07:00 a 21:00 (+ Todas)
   const horasOpciones = useMemo<string[]>(() => ['Todas', ...HORAS_CLASE], []);
 
-  // ✅ Función única para decidir si una tarjeta está bloqueada
+  // Función única para decidir si una tarjeta está bloqueada
   const isLocked = (h: PaseListaItem) => {
     const hr = (h as any).horaRegistro as string | null | undefined;
     const est = (h as any).estado as EstadoAsistencia | null | undefined;
@@ -581,8 +571,6 @@ export const PaseListaPage = () => {
         const estadoBackend = (h as any).estado as EstadoAsistencia | null | undefined;
         const notaBackend = (h as any).notaAdicional as string | null | undefined;
 
-        // ✅ Si está bloqueado/registrado: reflejar backend (no lo dejamos “editable”)
-        // ✅ Si NO está bloqueado: conserva lo local (si ya había empezado a capturar) o default
         estadoInit[h.idHorario] = locked
           ? (estadoBackend ?? 'PRESENTE')
           : (estadoPorHorario[h.idHorario] ?? (estadoBackend ?? 'PRESENTE'));
@@ -612,7 +600,6 @@ export const PaseListaPage = () => {
 
   useEffect(() => {
     cargar();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fecha]);
 
   const handleGuardar = async () => {
@@ -621,7 +608,7 @@ export const PaseListaPage = () => {
       setError('');
       setMensaje('');
 
-      // ✅ solo guardamos los NO bloqueados del filtro actual
+      // solo guardamos los NO bloqueados del filtro actual
       const paraGuardar = horariosFiltrados.filter(h => !isLocked(h));
 
       if (paraGuardar.length === 0) {
@@ -637,7 +624,7 @@ export const PaseListaPage = () => {
 
       await guardarPaseLista({ fecha, registros });
 
-      // ✅ recargar para traer horaRegistro y refrescar bloqueos
+      // recargar para traer horaRegistro y refrescar bloqueos
       await cargar();
 
       setMensaje('✅ Pase de lista guardado');
@@ -658,7 +645,6 @@ export const PaseListaPage = () => {
     setFiltroSalon('Todos');
   };
 
-  // Responsive helper sin CSS externo
   const [w, setW] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1200);
   useEffect(() => {
     const onR = () => setW(window.innerWidth);
@@ -678,7 +664,6 @@ export const PaseListaPage = () => {
   const rightStyle = isSm ? { ...S.classRight, borderLeft: 'none', borderTop: '1px solid #eef2ff' } : S.classRight;
   const infoGridStyle = isSm ? { ...S.infoGrid, gridTemplateColumns: '1fr' } : S.infoGrid;
 
-  // ✅ Estado global solo para UX del botón
   const allLocked = horariosFiltrados.length > 0 && horariosFiltrados.every(h => isLocked(h));
   const anyLocked = horariosFiltrados.some(h => isLocked(h));
 
@@ -892,7 +877,7 @@ export const PaseListaPage = () => {
 
                   {/* RIGHT */}
                   <div style={rightStyle}>
-                    {/* ✅ aviso específico por tarjeta */}
+                    {/* aviso específico por tarjeta */}
                     {locked && motivoBloqueo ? (
                       <div style={{ ...S.alert('error'), marginTop: 0 }}>
                         {motivoBloqueo}
@@ -989,7 +974,6 @@ export const PaseListaPage = () => {
               {allLocked ? 'Todo ya está registrado' : guardando ? 'Guardando…' : 'Guardar pase de lista'}
             </button>
 
-            {/* ✅ Notificación verde tipo imagen */}
             {mensaje ? (
               <div style={S.okBanner}>
                 <span style={S.okIcon}>

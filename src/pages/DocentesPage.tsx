@@ -11,9 +11,7 @@ import {
 } from '../api/profesores';
 import { getCarreras, type Carrera } from '../api/carreras';
 
-/* ===============================
-   Icons (SVG inline)
-================================ */
+/* Icons (SVG inline) */
 const Icon = ({
   name,
 }: {
@@ -127,9 +125,7 @@ const Icon = ({
   }
 };
 
-/* ===============================
-   Styles (match your new UI)
-================================ */
+/* Styles */
 const S = {
   screen: {
     minHeight: '100vh',
@@ -305,7 +301,6 @@ const S = {
       userSelect: 'none' as const,
     } as const),
 
-  // ✅ Alert tipo “notificación” como tu imagen (verde con icono)
   alert: (type: 'ok' | 'error') =>
     ({
       marginTop: 12,
@@ -418,12 +413,12 @@ export const DocentesPage = () => {
   // carreras CRUD
   const [carreras, setCarreras] = useState<Carrera[]>([]);
 
-  /* ================== EDICIÓN INLINE ================== */
+  /* EDICIÓN INLINE */
   const [editId, setEditId] = useState<number | null>(null);
   const [editNombre, setEditNombre] = useState('');
   const [editCarrera, setEditCarrera] = useState('');
 
-  /* ================== FILTROS + PAGINACIÓN ================== */
+  /* FILTROS + PAGINACIÓN */
   const [filtroCarrera, setFiltroCarrera] = useState<string>('Todas');
   const [filtroEstado, setFiltroEstado] = useState<'Todos' | 'Activo' | 'Inactivo'>('Todos');
   const [filtroTipo, setFiltroTipo] = useState<'Todos' | 'BASE' | 'HORAS'>('Todos');
@@ -431,7 +426,6 @@ export const DocentesPage = () => {
   const [pageSize, setPageSize] = useState<number>(10);
   const [page, setPage] = useState<number>(1);
 
-  // ✅ auto-hide de notificaciones
   const timerRef = useRef<number | null>(null);
   const clearTimer = () => {
     if (timerRef.current) {
@@ -456,7 +450,6 @@ export const DocentesPage = () => {
     return () => clearTimer();
   }, []);
 
-  // responsive grid (sin CSS)
   const [w, setW] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1200);
   useEffect(() => {
     const onR = () => setW(window.innerWidth);
@@ -472,7 +465,7 @@ export const DocentesPage = () => {
       ? { ...S.grid, gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }
       : S.grid;
 
-  /* ================== DATA ================== */
+  /* DATA */
   const cargarCarreras = async () => {
     try {
       const res = await getCarreras();
@@ -560,7 +553,7 @@ export const DocentesPage = () => {
     }
   };
 
-  /* ================== EDICIÓN INLINE ================== */
+  /* EDICIÓN INLINE */
   const iniciarEdicion = (d: Docente) => {
     setEditId(d.id_docente);
     setEditNombre(d.nombre ?? '');
@@ -616,7 +609,6 @@ export const DocentesPage = () => {
     }
   };
 
-  // ✅ cambios rápidos con notificación
   const cambiarTipo = async (id: number, newTipo: TipoDocente) => {
     try {
       setLoading(true);
@@ -658,7 +650,7 @@ export const DocentesPage = () => {
     }
   };
 
-  /* ================== FILTROS + ORDEN ================== */
+  /* FILTROS + ORDEN */
   const docentesFiltradosOrdenados = useMemo(() => {
     let lista = [...data];
 
@@ -816,7 +808,6 @@ export const DocentesPage = () => {
               </button>
             </div>
 
-            {/* ✅ Notificaciones tipo imagen */}
             {ok ? (
               <div style={S.alert('ok')}>
                 <span style={S.alertIcon('ok')}>
@@ -1134,7 +1125,6 @@ export const DocentesPage = () => {
               </table>
             </div>
 
-            {/* ✅ Notificaciones también visibles aquí (por si haces acciones abajo) */}
             {ok ? (
               <div style={S.alert('ok')}>
                 <span style={S.alertIcon('ok')}>

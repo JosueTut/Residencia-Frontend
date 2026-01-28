@@ -10,12 +10,11 @@ export type PaseListaItem = {
   diaSemana: string;
   horaClase: string;
 
-  // ✅ nuevos para UX
   bloqueado?: boolean;
   motivoBloqueo?: string | null;
   idAsistenciaExistente?: number | null;
 
-  // ✅ existentes (pueden venir nulos)
+  // Existentes (pueden venir nulos)
   estado?: EstadoAsistencia | null;
   notaAdicional?: string | null;
   horaRegistro?: string | null;
